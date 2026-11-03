@@ -11,7 +11,7 @@ function CssIdCard({ reducedMotion = false }: { reducedMotion?: boolean }) {
     <div className="lanyard css-lanyard" aria-hidden="true" />
     <div className="id-card css-id-card"><div className="id-inner">
       <div className="id-top"><span>PERSONAL PORTFOLIO</span><span>01 / 01</span></div>
-      <div className="id-photo"><Image src="/images/profile-placeholder.svg" alt="Replace with your portrait" width={640} height={640} priority /></div>
+      <div className="id-photo"><Image src="/images/profile-placeholder.svg" alt="Profile portrait placeholder on the ID card" width={640} height={640} priority /></div>
       <div className="id-name">{profile.name}</div><div className="id-role">{profile.role.toUpperCase()}</div>
       <div className="id-bottom"><span>AVAILABLE FOR<br />FREELANCE</span><span className="id-seal" aria-hidden="true">✳</span></div>
     </div></div>

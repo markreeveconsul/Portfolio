@@ -6,7 +6,7 @@ export const profile = {
   roleLineTwo: "Developer.",
   status: "Available for freelance",
   bio: "I’m a 2nd-year IT student who enjoys turning ideas into useful digital experiences. I’m available for freelance projects now and looking for internship and job opportunities as I grow.",
-  quote: "[TODO: Add a short quote that sounds like you.]",
+  quote: "",
   email: "[TODO: YOUR EMAIL]",
   github: "[TODO: YOUR GITHUB URL]",
   linkedin: "[TODO: YOUR LINKEDIN URL]",
