@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { certificates } from "@/data/certificates";
 import { projects } from "@/data/projects";
@@ -34,7 +35,7 @@ export function PortfolioExplorer() {
     closeRef.current?.focus();
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent | globalThis.KeyboardEvent) => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") closeLightbox();
       if (event.key === "ArrowRight") moveLightbox(1);
       if (event.key === "ArrowLeft") moveLightbox(-1);
@@ -76,9 +77,13 @@ export function PortfolioExplorer() {
 
   return <>
     <div className="tablist" role="tablist" aria-label="Portfolio categories" onKeyDown={handleTabKey}>
-      {tabs.map((tab, index) => <button key={tab.id} ref={(node) => { tabRefs.current[index] = node; }} id={`tab-${tab.id}`} className="tab" type="button" role="tab" aria-selected={active === tab.id} aria-controls={`panel-${tab.id}`} tabIndex={active === tab.id ? 0 : -1} onClick={() => setActive(tab.id)}>{tab.label}</button>)}
+      {tabs.map((tab, index) => <button key={tab.id} ref={(node) => { tabRefs.current[index] = node; }} id={`tab-${tab.id}`} className="tab" type="button" role="tab" aria-selected={active === tab.id} aria-controls={`panel-${tab.id}`} tabIndex={active === tab.id ? 0 : -1} onClick={() => setActive(tab.id)}>
+        {active === tab.id && <motion.span className="tab-indicator" layoutId="portfolio-tab-indicator" transition={{ type: "spring", stiffness: 420, damping: 36 }} aria-hidden="true" />}
+        <span className="tab-label">{tab.label}</span>
+      </button>)}
     </div>
-    <div id={`panel-${active}`} role="tabpanel" aria-labelledby={`tab-${active}`} tabIndex={0}>
+
+    <div id="panel-projects" role="tabpanel" aria-labelledby="tab-projects" tabIndex={0} hidden={active !== "projects"}>
       {active === "projects" && <div className="project-grid">
         {projects.map((project) => <article className="project-card glass-card" key={project.slug}>
           <Link className="project-image" href={`/portfolio/${project.slug}`} aria-label={`View details for ${project.name}`}>
@@ -94,9 +99,16 @@ export function PortfolioExplorer() {
           </div>
         </article>)}
       </div>}
+    </div>
+
+    <div id="panel-certificates" role="tabpanel" aria-labelledby="tab-certificates" tabIndex={0} hidden={active !== "certificates"}>
       {active === "certificates" && (certificates.length > 0 ? <div className="certificate-grid">{certificates.map((certificate, index) => <button className="certificate-card" key={`${certificate.title}-${index}`} type="button" onClick={(event) => { certificateTriggerRef.current = event.currentTarget; setCertificateIndex(index); }} aria-label={`Open certificate: ${certificate.title}`}><Image src={certificate.image} alt={certificate.imageAlt} width={640} height={420} /><span>{certificate.title} · {certificate.issuer}</span></button>)}</div> : <div className="empty-state glass-card"><strong>Certificates will go here.</strong>Certificate details will appear here when they are ready to share.</div>)}
+    </div>
+
+    <div id="panel-tech" role="tabpanel" aria-labelledby="tab-tech" tabIndex={0} hidden={active !== "tech"}>
       {active === "tech" && <div className="tech-groups">{techStack.map((group) => <section className="tech-group glass-card" key={group.name}><h3>{group.name}</h3><div className="tech-group-items">{group.items.map((item) => <span className="tech-item" key={item}>{item}</span>)}</div></section>)}</div>}
     </div>
+
     {certificateIndex !== null && certificates[certificateIndex] && <div className="lightbox" onMouseDown={(event) => { if (event.target === event.currentTarget) closeLightbox(); }}>
       <div className="lightbox-dialog glass-card" role="dialog" aria-modal="true" aria-label={`Certificate: ${certificates[certificateIndex].title}`}>
         <button className="lightbox-close" type="button" aria-label="Close certificate viewer" ref={closeRef} onClick={closeLightbox}>×</button>

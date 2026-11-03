@@ -32,7 +32,7 @@ export default function HomePage() {
 
       <MotionSection className="section" >
         <div className="about-grid" id="about">
-          <div className="about-copy"><p className="eyebrow"><span className="accent">//</span> About me</p><h2>{profile.name}</h2><p>{profile.bio}</p>{profile.quote && <blockquote className="about-quote">“{profile.quote}”</blockquote>}<div className="about-buttons"><button className="button button-primary" type="button" disabled>Download CV <span aria-hidden="true">↓</span></button><a className="button button-outline" href="#portfolio">View projects <span aria-hidden="true">↘</span></a></div></div>
+          <div className="about-copy"><p className="eyebrow"><span className="accent">//</span> About me</p><h2>{profile.name}</h2><p>{profile.bio}</p>{profile.quote && <blockquote className="about-quote">“{profile.quote}”</blockquote>}<div className="about-buttons"><button className="button button-primary" type="button" disabled>CV coming soon <span aria-hidden="true">↓</span></button><a className="button button-outline" href="#portfolio">View projects <span aria-hidden="true">↘</span></a></div></div>
           <div className="profile-side"><div className="portrait-ring"><Image src="/images/profile-placeholder.svg" alt="Profile portrait placeholder" width={640} height={640} /></div><div className="stats">
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number">{String(projects.length).padStart(2, "0")}</span><span className="stat-label">Projects</span></PortfolioJump>
             <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number">{certificates.length ? String(certificates.length).padStart(2, "0") : "—"}</span><span className="stat-label">Certificates</span></PortfolioJump>
@@ -55,7 +55,7 @@ export default function HomePage() {
       <MotionSection className="section" id="contact">
         <div className="section-heading"><p className="eyebrow"><span className="accent">//</span> Contact</p><h2>Let’s build something<br />worth sharing.</h2><p>Have a project, opportunity, or collaboration in mind? Send a note.</p></div>
         <div className="contact-grid">
-          <section className="contact-panel glass-card" id="contact-form"><h3>Send a message</h3><p>The contact form is not connected yet. It will be ready once the portfolio contact details are set up.</p><ContactForm /></section>
+          <section className="contact-panel glass-card" id="contact-form"><h3>Send a message</h3><p>Send a note about a project, internship, or collaboration.</p><ContactForm configured={Boolean(process.env.FORMSPREE_ENDPOINT?.startsWith("https://formspree.io/f/"))} /></section>
           <section className="contact-panel glass-card"><h3>Connect with me</h3><p>Public contact links will be added here.</p><div className="social-list">
             {profile.github.startsWith("https://") ? <a className="social-link" href={profile.github} target="_blank" rel="noreferrer"><span>GitHub</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>GitHub</span><span>Link coming soon</span></div>}
             {profile.linkedin.startsWith("https://") ? <a className="social-link" href={profile.linkedin} target="_blank" rel="noreferrer"><span>LinkedIn</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>LinkedIn</span><span>Link coming soon</span></div>}

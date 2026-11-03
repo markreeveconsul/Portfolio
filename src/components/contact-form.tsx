@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
-export function ContactForm() {
+export function ContactForm({ configured }: { configured: boolean }) {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -24,6 +24,8 @@ export function ContactForm() {
       setMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     }
   }
+
+  if (!configured) return <div className="contact-unavailable" role="status">Message delivery is not configured yet. This form will be available once email delivery is connected.</div>;
 
   return <form className="contact-form" onSubmit={handleSubmit}>
     <label className="field-label">Your name<input autoComplete="name" name="name" required maxLength={100} placeholder="Name" /></label>
