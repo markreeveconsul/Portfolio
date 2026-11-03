@@ -30,3 +30,10 @@ Import the repository into Vercel and deploy it as a Next.js project. Add `FORMS
 - Replace original image placeholders in `public/images/` with your own project previews, portrait, and social preview.
 
 AI tools and model details are deliberately omitted from the public tech stack. Facts that still need your confirmation remain marked `[TODO]`.
+## Portfolio assistant backend
+
+The optional FastAPI service lives in `backend/`. It exposes `GET /health`, `POST /api/chat`, and `POST /api/leads/confirm`. Chat requests are stateless: the browser may send a short bounded transcript, and the service does not save it. Gemini requests set `store: false`. Lead emails are sent only after the visitor opts in and confirms the final summary; email content contains the structured inquiry, not the chat transcript.
+
+To run locally, create a virtual environment in `backend/.venv`, install `backend/requirements.txt`, copy `backend/.env.example` to `backend/.env`, then set your private Gemini key there. Start the service from `backend/` with `python -m uvicorn app.main:app --reload --port 8000`. Lead delivery remains disabled until the private SMTP and recipient settings are configured. Set `PORTFOLIO_ORIGINS` to the exact frontend origins you use.
+
+The portfolio UI is not connected yet. The backend contains only currently approved project facts; update `PORTFOLIO_FACTS` in `backend/app/main.py` when public project details are confirmed.

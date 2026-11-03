@@ -16,6 +16,7 @@
     "next": "^16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "robot-heads": "^0.3.0",
     "three": "^0.187.0"
   },
   "devDependencies": {

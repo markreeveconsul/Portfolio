@@ -19,9 +19,13 @@ function CssIdCard({ reducedMotion = false }: { reducedMotion?: boolean }) {
   </div>;
 }
 
+function LoadingIdCard() {
+  return <div className="hero-card-stage hero-card-loading" aria-hidden="true"><div className="hero-glow" /></div>;
+}
+
 const InteractiveScene = dynamic(() => import("./hero-id-card-scene").then((module) => module.HeroIdCardScene), {
   ssr: false,
-  loading: () => <CssIdCard reducedMotion />,
+  loading: () => <LoadingIdCard />,
 });
 
 function canRenderWebGL() {
@@ -59,6 +63,6 @@ export function HeroIdCard() {
   }, []);
 
   if (mode === "fallback") return <CssIdCard reducedMotion={reducedMotion} />;
-  if (mode === "checking") return <CssIdCard reducedMotion />;
+  if (mode === "checking") return <LoadingIdCard />;
   return <SceneErrorBoundary fallback={<CssIdCard reducedMotion />}><InteractiveScene /></SceneErrorBoundary>;
 }
