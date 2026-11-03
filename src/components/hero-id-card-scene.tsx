@@ -10,12 +10,13 @@ import { profile } from "@/data/profile";
 
 const CARD_WIDTH = 2.15;
 const CARD_HEIGHT = 3;
-const CARD_HALF_WIDTH = CARD_WIDTH / 2;
-const CARD_HALF_HEIGHT = CARD_HEIGHT / 2;
+const CARD_SCALE = 0.82;
+const CARD_HALF_WIDTH = (CARD_WIDTH * CARD_SCALE) / 2;
+const CARD_HALF_HEIGHT = (CARD_HEIGHT * CARD_SCALE) / 2;
 const ROPE_LENGTH = 1.08;
 const ANCHOR_Y = 2.42;
 const CARD_TOP_LOCAL_Y = 1.42;
-const INITIAL_CARD_Y = -0.04;
+const INITIAL_CARD_Y = ANCHOR_Y - CARD_TOP_LOCAL_Y * CARD_SCALE - 1.04;
 
 function CardPhysicsRig() {
   const anchor = useRef<RapierRigidBody>(null!);
@@ -35,10 +36,11 @@ function CardPhysicsRig() {
   const strapMaterial = useMemo(() => new MeshLineMaterial({ color: "#8997ff", lineWidth: 0.065, resolution: new THREE.Vector2(640, 640), sizeAttenuation: 1, opacity: 0.98 }), []);
   const { size, camera, gl, viewport } = useThree();
   const anchorX = Math.max(0, Math.min(viewport.width * 0.285, viewport.width / 2 - CARD_HALF_WIDTH - 0.18));
-  const maxDragX = Math.max(0.3, viewport.width / 2 - CARD_HALF_WIDTH - 0.12);
-  const maxDragY = Math.max(0.3, viewport.height / 2 - CARD_HALF_HEIGHT - 0.1);
+  const cardRadius = Math.hypot(CARD_HALF_WIDTH, CARD_HALF_HEIGHT);
+  const maxDragX = Math.max(0.3, viewport.width / 2 - cardRadius - 0.16);
+  const maxDragY = Math.max(0.3, viewport.height / 2 - cardRadius - 0.12);
 
-  useRopeJoint(anchor, card, [[0, 0, 0], [0, CARD_TOP_LOCAL_Y, 0], ROPE_LENGTH]);
+  useRopeJoint(anchor, card, [[0, 0, 0], [0, CARD_TOP_LOCAL_Y * CARD_SCALE, 0], ROPE_LENGTH]);
 
   useFrame(() => {
     const body = card.current;
@@ -53,7 +55,7 @@ function CardPhysicsRig() {
     }
     const rotation = body.rotation();
     const cardRotation = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-    const strapOffset = new THREE.Vector3(0, CARD_TOP_LOCAL_Y, 0).applyQuaternion(cardRotation);
+    const strapOffset = new THREE.Vector3(0, CARD_TOP_LOCAL_Y * CARD_SCALE, 0).applyQuaternion(cardRotation);
     const end = new THREE.Vector3(position.x + strapOffset.x, position.y + strapOffset.y, position.z + strapOffset.z);
     const midpoint = new THREE.Vector3(anchorX + (end.x - anchorX) * 0.52, (ANCHOR_Y + end.y) / 2 - Math.min(0.18, Math.abs(end.x - anchorX) * 0.09), (end.z + 0.02));
     strapGeometry.setPoints(new THREE.QuadraticBezierCurve3(new THREE.Vector3(anchorX, ANCHOR_Y, 0), midpoint, end).getPoints(18));
@@ -116,9 +118,9 @@ function CardPhysicsRig() {
   return <>
     <mesh geometry={strapGeometry} material={strapMaterial} frustumCulled={false} />
     <RigidBody ref={anchor} type="fixed" colliders={false} position={[anchorX, ANCHOR_Y, 0]} />
-    <RigidBody ref={card} colliders={false} position={[anchorX, INITIAL_CARD_Y, 0]} mass={0.9} linearDamping={1.45} angularDamping={1.9} restitution={0.035} friction={0.85}>
-      <CuboidCollider args={[CARD_HALF_WIDTH, CARD_HALF_HEIGHT, 0.075]} />
-      <group onPointerDown={onPointerDown} onPointerOver={() => { document.body.style.cursor = "grab"; }} onPointerOut={() => { if (!dragging.current) document.body.style.cursor = ""; }}>
+    <RigidBody ref={card} colliders={false} position={[anchorX, INITIAL_CARD_Y, 0]} mass={0.9} linearDamping={1.05} angularDamping={1.25} restitution={0.025} friction={0.85}>
+      <CuboidCollider args={[CARD_HALF_WIDTH, CARD_HALF_HEIGHT, 0.075 * CARD_SCALE]} />
+      <group scale={CARD_SCALE} onPointerDown={onPointerDown} onPointerOver={() => { document.body.style.cursor = "grab"; }} onPointerOut={() => { if (!dragging.current) document.body.style.cursor = ""; }}>
         <RoundedBox args={[CARD_WIDTH, CARD_HEIGHT, 0.16]} radius={0.18} smoothness={8}>
           <meshPhysicalMaterial color="#17171d" roughness={0.22} metalness={0.38} clearcoat={0.9} clearcoatRoughness={0.14} />
         </RoundedBox>

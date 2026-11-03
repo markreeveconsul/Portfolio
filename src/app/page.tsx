@@ -10,6 +10,7 @@ import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
 import { services } from "@/data/services";
 import { certificates } from "@/data/certificates";
+import { ChatMascot } from "@/components/chat-mascot";
 
 export default function HomePage() {
   const completedProjects = projects.filter((project) => project.status === "Completed").length;
@@ -65,5 +66,6 @@ export default function HomePage() {
       </MotionSection>
       <footer className="footer">© {new Date().getFullYear()} {profile.name} · BUILT WITH CARE</footer>
     </main>
+    <ChatMascot />
   </>;
 }
