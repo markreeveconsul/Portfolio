@@ -36,4 +36,4 @@ The optional FastAPI service lives in `backend/`. It exposes `GET /health`, `POS
 
 To run locally, create a virtual environment in `backend/.venv`, install `backend/requirements.txt`, copy `backend/.env.example` to `backend/.env`, then set your private Gemini key there. Start the service from `backend/` with `python -m uvicorn app.main:app --reload --port 8000`. Lead delivery remains disabled until the private SMTP and recipient settings are configured. Set `PORTFOLIO_ORIGINS` to the exact frontend origins you use.
 
-The portfolio UI is not connected yet. The backend contains only currently approved project facts; update `PORTFOLIO_FACTS` in `backend/app/main.py` when public project details are confirmed.
+The chatbot retrieves relevant entries from a small local portfolio knowledge base before calling the model. Suggested questions in the panel use fixed approved answers locally and do not call an AI provider. Update `KNOWLEDGE_BASE` in `backend/app/main.py` when public project details are confirmed.
