@@ -33,7 +33,7 @@ export default function HomePage() {
       <MotionSection className="section" >
         <div className="about-grid" id="about">
           <div className="about-copy"><p className="eyebrow"><span className="accent">//</span> About me</p><h2>{profile.name}</h2><p>{profile.bio}</p>{profile.quote && <blockquote className="about-quote">“{profile.quote}”</blockquote>}<div className="about-buttons"><button className="button button-primary" type="button" disabled>Download CV <span aria-hidden="true">↓</span></button><a className="button button-outline" href="#portfolio">View projects <span aria-hidden="true">↘</span></a></div></div>
-          <div className="profile-side"><div className="portrait-ring"><Image src="/images/profile-placeholder.svg" alt="Placeholder portrait; replace with your own photo" width={640} height={640} /></div><div className="stats">
+          <div className="profile-side"><div className="portrait-ring"><Image src="/images/profile-placeholder.svg" alt="Profile portrait placeholder" width={640} height={640} /></div><div className="stats">
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number">{String(projects.length).padStart(2, "0")}</span><span className="stat-label">Projects</span></PortfolioJump>
             <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number">{certificates.length ? String(certificates.length).padStart(2, "0") : "—"}</span><span className="stat-label">Certificates</span></PortfolioJump>
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number">{String(completedProjects).padStart(2, "0")}</span><span className="stat-label">Completed works</span></PortfolioJump>
