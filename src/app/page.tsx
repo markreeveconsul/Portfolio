@@ -1,0 +1,71 @@
+import Image from "next/image";
+import Link from "next/link";
+import { Navbar } from "@/components/navbar";
+import { PortfolioExplorer } from "@/components/portfolio-explorer";
+import { ContactForm } from "@/components/contact-form";
+import { MotionSection } from "@/components/motion-section";
+import { PortfolioJump } from "@/components/portfolio-jump";
+import { profile } from "@/data/profile";
+import { projects } from "@/data/projects";
+import { services } from "@/data/services";
+import { certificates } from "@/data/certificates";
+
+export default function HomePage() {
+  const completedProjects = projects.filter((project) => project.status === "Completed").length;
+  return <>
+    <a className="sr-only focus:not-sr-only" href="#main">Skip to content</a>
+    <Navbar />
+    <main id="main" className="site-wrap">
+      <section className="hero" id="home" aria-labelledby="hero-title">
+        <div className="hero-copy">
+          <p className="availability"><i aria-hidden="true" />{profile.status}</p>
+          <h1 id="hero-title">{profile.roleLineOne}<br /><span>{profile.roleLineTwo}</span></h1>
+          <p className="cursor-line">2ND-YEAR IT STUDENT&nbsp; · &nbsp;DEVELOPER</p>
+          <p className="hero-description">{profile.bio}</p>
+          <div className="tech-chips" aria-label="Selected technologies"><span className="chip">Java</span><span className="chip">JavaFX</span><span className="chip">AI projects</span><span className="chip">[TODO: web stack]</span></div>
+          <div className="hero-actions"><a className="button button-primary" href="#portfolio">See my projects <span aria-hidden="true">↘</span></a><a className="button button-outline" href="#contact">Hire me <span aria-hidden="true">↗</span></a></div>
+        </div>
+        <div className="hero-card-stage" aria-label="Static portfolio ID card preview">
+          <div className="hero-glow" aria-hidden="true" /><div className="lanyard" aria-hidden="true" />
+          <div className="id-card"><div className="id-inner"><div className="id-top"><span>PERSONAL PORTFOLIO</span><span>01 / 01</span></div><div className="id-photo"><Image src="/images/profile-placeholder.svg" alt="Replace with your portrait" width={640} height={640} priority /></div><div className="id-name">{profile.name}</div><div className="id-role">{profile.role.toUpperCase()}</div><div className="id-bottom"><span>AVAILABLE FOR<br />FREELANCE</span><span className="id-seal" aria-hidden="true">✳</span></div></div></div>
+        </div>
+        <div className="hero-scroll" aria-hidden="true"><span>SCROLL TO EXPLORE</span><span className="scroll-arrow">↓</span><span>01 — 04</span></div>
+      </section>
+
+      <MotionSection className="section" >
+        <div className="about-grid" id="about">
+          <div className="about-copy"><p className="eyebrow"><span className="accent">//</span> About me</p><h2>{profile.name}</h2><p>{profile.bio}</p><blockquote className="about-quote">“{profile.quote}”</blockquote><div className="about-buttons"><button className="button button-primary" type="button" disabled>Download CV <span aria-hidden="true">↓</span></button><a className="button button-outline" href="#portfolio">View projects <span aria-hidden="true">↘</span></a></div></div>
+          <div className="profile-side"><div className="portrait-ring"><Image src="/images/profile-placeholder.svg" alt="Placeholder portrait; replace with your own photo" width={640} height={640} /></div><div className="stats">
+            <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number">{String(projects.length).padStart(2, "0")}</span><span className="stat-label">Projects</span></PortfolioJump>
+            <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number">{certificates.length ? String(certificates.length).padStart(2, "0") : "—"}</span><span className="stat-label">Certificates</span></PortfolioJump>
+            <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number">{String(completedProjects).padStart(2, "0")}</span><span className="stat-label">Completed works</span></PortfolioJump>
+          </div></div>
+        </div>
+      </MotionSection>
+
+      <MotionSection className="section portfolio-section" id="portfolio">
+        <div className="section-heading"><p className="eyebrow"><span className="accent">//</span> Portfolio</p><h2>Selected work &<br />curious experiments.</h2><p>A few projects I’ve worked on. AI integrations are called out so their role is easy to spot.</p></div>
+        <PortfolioExplorer />
+      </MotionSection>
+
+      <MotionSection className="section" id="services">
+        <div className="section-heading"><p className="eyebrow"><span className="accent">//</span> Services</p><h2>Ways I can help.</h2><p>These are the kinds of projects I’m interested in taking on. Details are placeholders until you confirm your offerings.</p></div>
+        <div className="services-grid">{services.map((service) => <article className="service-card glass-card" key={service.number}><span className="service-num">{service.number} / SERVICE</span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
+        <div className="process-row glass-card" aria-label="How I work"><span className="process-step"><b>01</b> Talk</span><span className="process-step"><b>02</b> Design</span><span className="process-step"><b>03</b> Build</span><span className="process-step"><b>04</b> Revise</span><span className="process-step"><b>05</b> Deliver</span></div>
+      </MotionSection>
+
+      <MotionSection className="section" id="contact">
+        <div className="section-heading"><p className="eyebrow"><span className="accent">//</span> Contact</p><h2>Let’s build something<br />worth sharing.</h2><p>Have a project, opportunity, or collaboration in mind? Send a note.</p></div>
+        <div className="contact-grid">
+          <section className="contact-panel glass-card" id="contact-form"><h3>Send a message</h3><p>The form needs a Formspree endpoint in the deployment environment before it can deliver messages.</p><ContactForm /></section>
+          <section className="contact-panel glass-card"><h3>Connect with me</h3><p>Choose a channel that works for you.</p><div className="social-list">
+            <a className="social-link" href={profile.github.startsWith("https://") ? profile.github : "#contact-form"} target={profile.github.startsWith("https://") ? "_blank" : undefined} rel={profile.github.startsWith("https://") ? "noreferrer" : undefined}><span>GitHub</span><span>↗</span></a>
+            <a className="social-link" href={profile.linkedin.startsWith("https://") ? profile.linkedin : "#contact-form"} target={profile.linkedin.startsWith("https://") ? "_blank" : undefined} rel={profile.linkedin.startsWith("https://") ? "noreferrer" : undefined}><span>LinkedIn</span><span>↗</span></a>
+            <a className="social-link" href={profile.email.includes("@") ? `mailto:${profile.email}` : "#contact-form"}><span>Email</span><span>↗</span></a>
+          </div><p className="contact-note">Links show placeholders until your email and profile URLs are added.</p></section>
+        </div>
+      </MotionSection>
+      <footer className="footer">© {new Date().getFullYear()} {profile.name} · BUILT WITH CARE</footer>
+    </main>
+  </>;
+}

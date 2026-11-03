@@ -1,0 +1,15 @@
+export const profile = {
+  name: "[YOUR NAME]",
+  firstName: "[YOUR NAME]",
+  role: "IT Student · Developer",
+  roleLineOne: "IT student.",
+  roleLineTwo: "Developer.",
+  status: "Available for freelance",
+  bio: "I’m a 2nd-year IT student who enjoys turning ideas into useful digital experiences. I’m available for freelance projects now and looking for internship and job opportunities as I grow.",
+  quote: "[TODO: Add a short quote that sounds like you.]",
+  email: "[TODO: YOUR EMAIL]",
+  github: "[TODO: YOUR GITHUB URL]",
+  linkedin: "[TODO: YOUR LINKEDIN URL]",
+  cvPath: "#",
+  location: "[TODO: YOUR LOCATION, OPTIONAL]",
+} as const;
