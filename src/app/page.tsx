@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
+import { HeroIdCard } from "@/components/hero-id-card";
 import { PortfolioExplorer } from "@/components/portfolio-explorer";
 import { ContactForm } from "@/components/contact-form";
 import { MotionSection } from "@/components/motion-section";
@@ -25,10 +26,7 @@ export default function HomePage() {
           <div className="tech-chips" aria-label="Selected technologies"><span className="chip">Java</span><span className="chip">JavaFX</span><span className="chip">AI projects</span><span className="chip">[TODO: web stack]</span></div>
           <div className="hero-actions"><a className="button button-primary" href="#portfolio">See my projects <span aria-hidden="true">↘</span></a><a className="button button-outline" href="#contact">Hire me <span aria-hidden="true">↗</span></a></div>
         </div>
-        <div className="hero-card-stage" aria-label="Static portfolio ID card preview">
-          <div className="hero-glow" aria-hidden="true" /><div className="lanyard" aria-hidden="true" />
-          <div className="id-card"><div className="id-inner"><div className="id-top"><span>PERSONAL PORTFOLIO</span><span>01 / 01</span></div><div className="id-photo"><Image src="/images/profile-placeholder.svg" alt="Replace with your portrait" width={640} height={640} priority /></div><div className="id-name">{profile.name}</div><div className="id-role">{profile.role.toUpperCase()}</div><div className="id-bottom"><span>AVAILABLE FOR<br />FREELANCE</span><span className="id-seal" aria-hidden="true">✳</span></div></div></div>
-        </div>
+                <HeroIdCard />
         <div className="hero-scroll" aria-hidden="true"><span>SCROLL TO EXPLORE</span><span className="scroll-arrow">↓</span><span>01 — 04</span></div>
       </section>
 
