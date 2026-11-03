@@ -13,6 +13,7 @@ function CardPhysicsRig() {
   const card = useRef<RapierRigidBody>(null!);
   const dragging = useRef(false);
   const grabOffset = useRef(new THREE.Vector3());
+  const dragTarget = useRef(new THREE.Vector3(0, -0.04, 0));
   const dragPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), []);
   const strapGeometry = useMemo(() => {
     const geometry = new MeshLineGeometry();
@@ -28,7 +29,19 @@ function CardPhysicsRig() {
     const body = card.current;
     if (!body) return;
     const position = body.translation();
-    strapGeometry.setPoints([[0, 2.42, 0], [position.x, position.y + 1.42, position.z]]);
+    if (dragging.current) {
+      const dx = dragTarget.current.x - position.x;
+      const dy = dragTarget.current.y - position.y;
+      const speed = Math.hypot(dx, dy) * 11;
+      const scale = speed > 7 ? 7 / speed : 1;
+      body.setLinvel({ x: dx * 11 * scale, y: dy * 11 * scale, z: 0 }, true);
+    }
+    const rotation = body.rotation();
+    const cardRotation = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+    const strapOffset = new THREE.Vector3(0, 1.42, 0).applyQuaternion(cardRotation);
+    const end = new THREE.Vector3(position.x + strapOffset.x, position.y + strapOffset.y, position.z + strapOffset.z);
+    const midpoint = new THREE.Vector3(position.x * 0.52, (2.42 + end.y) / 2 - Math.min(0.16, Math.abs(position.x) * 0.1), position.z + 0.02);
+    strapGeometry.setPoints(new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 2.42, 0), midpoint, end).getPoints(16));
   });
 
   useEffect(() => { strapMaterial.resolution.set(size.width, size.height); }, [size.width, size.height, strapMaterial]);
@@ -39,6 +52,7 @@ function CardPhysicsRig() {
     dragging.current = true;
     if (event.nativeEvent.target instanceof HTMLCanvasElement) event.nativeEvent.target.setPointerCapture(event.pointerId);
     const bodyPosition = card.current.translation();
+    dragTarget.current.set(bodyPosition.x, bodyPosition.y, bodyPosition.z);
     grabOffset.current.set(bodyPosition.x - event.point.x, bodyPosition.y - event.point.y, bodyPosition.z - event.point.z);
     document.body.style.cursor = "grabbing";
   }
@@ -47,9 +61,10 @@ function CardPhysicsRig() {
     if (!dragging.current || !card.current) return;
     const point = event.ray.intersectPlane(dragPlane, new THREE.Vector3());
     if (!point) return;
-    card.current.setTranslation({ x: point.x + grabOffset.current.x, y: point.y + grabOffset.current.y, z: grabOffset.current.z }, true);
-    card.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
-    card.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    const x = THREE.MathUtils.clamp(point.x + grabOffset.current.x, -1.35, 1.35);
+    const y = THREE.MathUtils.clamp(point.y + grabOffset.current.y, -0.68, 0.72);
+    dragTarget.current.set(x, y, 0);
+    card.current.wakeUp();
   }
 
   function onPointerUp(event: ThreeEvent<PointerEvent>) {
