@@ -102,3 +102,20 @@ body{background-color:var(--bg);background-image:radial-gradient(ellipse 50% 40%
 @media(max-width:900px){.id-control-dock{right:clamp(16px,5vw,44px);bottom:28px}.id-control{min-height:34px;padding:8px 10px;font-size:9px}}
 @media(max-width:680px){.css-id-stage{height:440px;margin-top:4px}.css-id-orbit,.css-id-card{width:230px}.css-id-face{border-radius:13px}.id-control-dock-fallback{right:auto;bottom:auto}.hero-card-canvas .id-control-dock{display:none}}
 @media(prefers-reduced-motion:reduce){.css-id-float{animation:none}.css-id-orbit{animation:none}}
+
+/* Source-matched flat card for touch, reduced motion, and WebGL fallback. */
+.css-id-stage{height:490px;gap:7px;perspective:1200px}
+.css-flat-card{position:relative;display:block;width:min(250px,64vw);aspect-ratio:38/59;padding:0;border:0;border-radius:22px;background:transparent;perspective:1200px;cursor:pointer;filter:drop-shadow(0 24px 34px rgba(0,0,0,.48));}
+.css-flat-card-inner{position:absolute;inset:0;display:block;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.16,1,.3,1)}
+.css-flat-card.is-back .css-flat-card-inner{transform:rotateY(180deg)}
+.css-flat-face{position:absolute;inset:0;overflow:hidden;border:1px solid #2A2E35;border-radius:22px;background:#121418;backface-visibility:hidden}
+.css-flat-face img{display:block;width:100%;height:100%;object-fit:fill}
+.css-flat-back{transform:rotateY(180deg)}
+.css-flat-loading{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:22px;color:#ECEAE4;background:#121418;text-align:left}
+.css-flat-loading b{font:800 clamp(23px,7vw,42px)/.94 var(--display)}
+.css-flat-loading small{font:500 12px/1.8 var(--font-card-mono,monospace);color:#C9D0DA}
+.css-flat-hint{margin:8px 0 0;color:#9AA0A8;font:500 10px/1.4 var(--font-card-mono,monospace);letter-spacing:.06em;text-align:center;text-transform:uppercase}
+.css-flat-card:focus-visible{outline:2px solid #C9D0DA;outline-offset:5px}
+.hero-card-canvas .id-control-dock{display:flex}
+@media(max-width:680px){.css-id-stage{height:440px;margin-top:4px}.css-flat-card{width:min(220px,64vw)}.css-flat-face{border-radius:18px}.hero-card-canvas{display:none}}
+@media(prefers-reduced-motion:reduce){.css-flat-card-inner{transition:none}}
