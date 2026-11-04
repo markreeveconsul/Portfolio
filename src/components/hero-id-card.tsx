@@ -1,29 +1,57 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "react";
-import Image from "next/image";
+import { Component, useEffect, useRef, useState, type ErrorInfo, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { profile } from "@/data/profile";
+import { profileFacts } from "@/data/profile-facts";
 
 function CssIdCard({ reducedMotion = false }: { reducedMotion?: boolean }) {
-  return <div className={`hero-card-stage css-id-stage${reducedMotion ? " reduced-motion" : ""}`} role="group" aria-label="Portfolio ID card preview">
-    <div className="hero-glow" aria-hidden="true" />
-    <div className="lanyard css-lanyard" aria-hidden="true" />
-    <div className="id-card css-id-card"><div className="id-inner">
-      <div className="id-top"><span>PERSONAL PORTFOLIO</span><span>01 / 01</span></div>
-      <div className="id-photo"><Image src="/images/profile-placeholder.svg" alt="Profile portrait placeholder on the ID card" width={640} height={640} priority /></div>
-      <div className="id-name">{profile.name}</div><div className="id-role">{profile.role.toUpperCase()}</div>
-      <div className="id-bottom"><span>AVAILABLE FOR<br />FREELANCE</span><span className="id-seal" aria-hidden="true">✳</span></div>
-    </div></div>
-    <span className="sr-only">On larger screens, drag the card to swing it.</span>
+  const [paused, setPaused] = useState(reducedMotion);
+  const [fast, setFast] = useState(false);
+  const [faceBack, setFaceBack] = useState(false);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const pointer = useRef<{ id: number; x: number; y: number } | null>(null);
+  function startDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    setPaused(true);
+  }
+  function moveDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!pointer.current || pointer.current.id !== event.pointerId) return;
+    const dx = event.clientX - pointer.current.x;
+    const dy = event.clientY - pointer.current.y;
+    pointer.current.x = event.clientX;
+    pointer.current.y = event.clientY;
+    setTilt((value) => ({ x: Math.max(-35, Math.min(35, value.x + dy * 0.35)), y: value.y + dx * 0.45 }));
+  }
+  function endDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (pointer.current?.id !== event.pointerId) return;
+    pointer.current = null;
+  }
+  return <div className="hero-card-stage css-id-stage" role="group" aria-label="Floating portfolio card">
+    <div className={`css-id-orbit${paused ? " is-paused" : ""}${fast ? " is-boosted" : ""}${faceBack && paused ? " is-directed is-back" : ""}`}>
+      <div className="css-id-float">
+        <div className="css-id-card" style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}>
+          <div className="css-id-face css-id-front"><span className="css-id-label">PORTFOLIO <small>01 / 01</small></span><span className="css-id-accent" aria-hidden="true" /><strong>{profile.name}</strong><span className="css-id-role">{profile.role.toUpperCase()}</span><span className="css-id-rule" /><span className="css-id-focus-label">CURRENT FOCUS</span><span className="css-id-focus">Useful digital experiences</span><small className="css-id-footer">IT STUDENT · DEVELOPER</small></div>
+          <div className="css-id-face css-id-back"><span className="css-id-label">A FEW THINGS ABOUT ME</span>{profileFacts.map((fact) => <div className="css-id-fact" key={fact.label}><small>{fact.label}</small><span>{fact.value}</span></div>)}</div>
+        </div>
+      </div>
+    </div>
+    <div className="id-control-dock id-control-dock-fallback" role="group" aria-label="ID card controls">
+      <button className="id-control" type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>{paused ? "Resume spin" : "Pause to read"}</button>
+      <button className="id-control" type="button" aria-pressed={faceBack} onClick={() => { setPaused(true); setFaceBack((value) => !value); }}>{faceBack ? "Show front" : "Read the back"}</button>
+      <button className="id-control id-control-boost" type="button" aria-pressed={fast} onPointerDown={() => setFast(true)} onPointerUp={() => setFast(false)} onPointerCancel={() => setFast(false)} onPointerLeave={() => setFast(false)} onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") setFast(true); }} onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") setFast(false); }} onBlur={() => setFast(false)}><span className="boost-icon" aria-hidden="true">↗</span>Hold to speed up</button>
+    </div>
+    <span className="sr-only">The card slowly rotates. Drag it to tilt, pause it to read, or hold the speed control to spin faster.</span>
   </div>;
 }
 
 function LoadingIdCard() {
-  return <div className="hero-card-stage hero-card-loading" aria-hidden="true"><div className="hero-glow" /></div>;
+  return <div className="hero-card-stage hero-card-loading" aria-hidden="true" />;
 }
 
-const InteractiveScene = dynamic(() => import("./hero-id-card-scene").then((module) => module.HeroIdCardScene), {
+const InteractiveScene = dynamic(() => import("./floating-id-card-scene").then((module) => module.HeroIdCardScene), {
   ssr: false,
   loading: () => <LoadingIdCard />,
 });

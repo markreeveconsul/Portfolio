@@ -21,6 +21,33 @@ type RobotState =
   | "sleeping";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+function completedConversation(source: ChatMessage[]): ChatMessage[] {
+  const turns: ChatMessage[] = [];
+  let pendingVisitor: ChatMessage | null = null;
+  for (const message of source) {
+    if (message.role === "user") {
+      pendingVisitor = message;
+    } else if (pendingVisitor) {
+      turns.push(pendingVisitor, message);
+      pendingVisitor = null;
+    }
+  }
+  return turns.slice(-10);
+}
+
+function localAnswerFor(rawQuestion: string): { answer: string; openInquiry?: boolean } | null {
+  const question = rawQuestion.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const asksForContact = /\b(contact|hire|quote|inquir|talk|start a project|work together)\b/.test(question);
+  if (asksForContact) return { answer: "I can help prepare a project inquiry. Add your details in the form and review it before choosing to send it by email.", openInquiry: true };
+  if (/\b(thesa)\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further implementation details haven’t been confirmed yet." };
+  if (/\b(netpath)\b/.test(question)) return { answer: "NetPath is an in-progress networking learning web app with a simulation sandbox. Its specific topics and sandbox capabilities are still to be confirmed." };
+  if (/\b(ai|artificial intelligence)\b/.test(question) && /\b(project|projects|use|integration)\b/.test(question)) return { answer: "The portfolio currently identifies JavaFX E-Commerce Tech Shop as having an AI integration and Thesa as an in-progress AI thesis assistant. More details about the shop integration have not been confirmed." };
+  if (/\b(freelance|available|availability|internship|job)\b/.test(question)) return { answer: "The portfolio says the owner is available for freelance projects and is interested in internship and job opportunities." };
+  if (/\b(service|services|offer|offers|pricing|price|cost|timeline|budget)\b/.test(question)) return { answer: "The services section currently shows small business websites, landing pages, and web apps as examples. These offers, prices, and timelines have not been finalized." };
+  if (/\b(project|projects|portfolio|featured|work)\b/.test(question)) return { answer: "The portfolio currently features JavaFX E-Commerce Tech Shop (completed), Thesa (in progress), and NetPath (in progress)." };
+  return null;
+}
 type LeadForm = {
   name: string;
   email: string;
@@ -38,6 +65,29 @@ const emptyLead: LeadForm = {
   timeline: "",
 };
 
+const QUICK_ANSWERS = [
+  {
+    question: "What projects are featured?",
+    answer: "The portfolio currently features three projects: JavaFX E-Commerce Tech Shop (completed), Thesa (in progress), and NetPath (in progress).",
+  },
+  {
+    question: "Which projects use AI?",
+    answer: "JavaFX E-Commerce Tech Shop includes an AI integration, though its exact behavior isn’t documented yet. Thesa is an in-progress assistant for questions about uploaded documents and PDFs.",
+  },
+  {
+    question: "What is Thesa?",
+    answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. More implementation details haven’t been confirmed yet.",
+  },
+  {
+    question: "What is NetPath?",
+    answer: "NetPath is an in-progress networking learning web app with a simulation sandbox. Its specific topics and sandbox capabilities are still to be confirmed.",
+  },
+  {
+    question: "Is the owner available for freelance work?",
+    answer: "The portfolio says the owner is available for freelance projects and is also interested in internship and job opportunities.",
+  },
+] as const;
+
 export function ChatMascot() {
   const [open, setOpen] = useState(false);
   const [mascotState, setMascotState] = useState<RobotState>("sleeping");
@@ -46,6 +96,7 @@ export function ChatMascot() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [chatError, setChatError] = useState("");
+  const [failedPrompt, setFailedPrompt] = useState("");
   const [leadOpen, setLeadOpen] = useState(false);
   const [leadReview, setLeadReview] = useState(false);
   const [lead, setLead] = useState<LeadForm>(emptyLead);
@@ -109,23 +160,11 @@ export function ChatMascot() {
     window.setTimeout(() => openRef.current && panelRef.current?.focus(), 0);
   }
 
-  async function sendMessage(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const content = draft.trim();
-    if (!content || busy) return;
-
+  async function askAssistant(content: string) {
     setBusy(true);
     setChatError("");
-    setDraft("");
-    const userMessage: ChatMessage = { role: "user", content };
-    setMessages((current) => [...current, userMessage]);
     setStateFor("searching", 360, "thinking");
-
-    // Keep only a short, in-memory conversation. The backend and Gemini do not
-    // retain it; the initial greeting is UI-only and never sent to the API.
-    const history = messages.slice(-10);
-    const boundedHistory = history[0]?.role === "assistant" ? history.slice(1) : history;
-    const requestMessages = [...boundedHistory, userMessage];
+    const requestMessages = [...completedConversation(messages), { role: "user" as const, content }];
     try {
       await new Promise((resolve) => setTimeout(resolve, reducedMotion ? 0 : 360));
       if (openRef.current) setMascotState("thinking");
@@ -137,14 +176,62 @@ export function ChatMascot() {
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.detail || "I can’t connect right now. Please try again in a moment.");
       setMessages((current) => [...current, { role: "assistant", content: result.reply }]);
+      setFailedPrompt("");
       setStateFor("speaking", 1800);
     } catch (error) {
       const message = error instanceof Error ? error.message : "I can’t connect right now. Please try again in a moment.";
       setChatError(message);
+      setFailedPrompt(content);
       setStateFor("error", 2400);
     } finally {
       setBusy(false);
     }
+  }
+
+  async function sendMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = draft.trim();
+    if (!content || busy) return;
+
+    setDraft("");
+    setChatError("");
+    setFailedPrompt("");
+    const userMessage: ChatMessage = { role: "user", content };
+    setMessages((current) => [...current, userMessage]);
+    const localAnswer = localAnswerFor(content);
+    if (localAnswer) {
+      setMessages((current) => [...current, { role: "assistant", content: localAnswer.answer }]);
+      if (localAnswer.openInquiry) setLeadOpen(true);
+      setStateFor("speaking", 1800);
+      return;
+    }
+    await askAssistant(content);
+  }
+
+  function retryLastMessage() {
+    if (!failedPrompt || busy) return;
+    void askAssistant(failedPrompt);
+  }
+
+  function startNewChat() {
+    if (busy) return;
+    setMessages([]);
+    setDraft("");
+    setChatError("");
+    setFailedPrompt("");
+    setLeadOpen(false);
+    resetLead();
+    setStateFor("idle");
+  }
+
+  function answerQuickQuestion(item: (typeof QUICK_ANSWERS)[number]) {
+    setChatError("");
+    setMessages((current) => [
+      ...current,
+      { role: "user", content: item.question },
+      { role: "assistant", content: item.answer },
+    ]);
+    setStateFor("speaking", 1300);
   }
 
   function updateLead(field: keyof LeadForm, value: string) {
@@ -210,6 +297,7 @@ export function ChatMascot() {
               <h2 id="portfolio-assistant-title">Portfolio assistant</h2>
               <p><span className={`assistant-status-dot status-${mascotState}`} />{statusLabel(mascotState)}</p>
             </div>
+            {messages.length > 0 && <button className="chat-new" type="button" onClick={startNewChat} disabled={busy} aria-label="Start a new chat">New chat</button>}
             <button className="chat-close" type="button" onClick={togglePanel} aria-label="Close assistant">×</button>
           </header>
 
@@ -218,13 +306,25 @@ export function ChatMascot() {
               <>
                 <div className="chat-transcript" aria-live="polite" aria-label="Conversation">
                   <p className="chat-bubble assistant-bubble">Hi! Ask me about the projects, or tell me what you’re looking to build.</p>
+                  {messages.length === 0 && (
+                    <div className="chat-quick-questions" aria-label="Suggested questions with instant answers">
+                      <p>Quick questions <span>Instant answers</span></p>
+                      <div>
+                        {QUICK_ANSWERS.map((item) => (
+                          <button key={item.question} type="button" onClick={() => answerQuickQuestion(item)}>
+                            {item.question}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {messages.map((message, index) => (
                     <p className={`chat-bubble ${message.role === "user" ? "user-bubble" : "assistant-bubble"}`} key={`${index}-${message.role}`}>
                       {message.content}
                     </p>
                   ))}
                   {busy && <p className="chat-bubble assistant-bubble chat-thinking" aria-label="Assistant is thinking"><span /><span /><span /></p>}
-                  {chatError && <p className="chat-error" role="alert">{chatError}</p>}
+                  {chatError && <div className="chat-error-wrap" role="alert"><p className="chat-error">{chatError}</p>{failedPrompt && <button className="chat-retry" type="button" onClick={retryLastMessage} disabled={busy}>Try again</button>}</div>}
                   <div ref={messageEndRef} />
                 </div>
                 <form className="chat-compose" onSubmit={sendMessage}>
@@ -296,7 +396,7 @@ export function ChatMascot() {
               </div>
             )}
           </div>
-          <p className="chat-footer-note">The assistant uses public portfolio information only.</p>
+          <p className="chat-footer-note">Recent chat goes to Gemini and may also go to Groq if Gemini is slow. Don’t share sensitive information.</p>
         </section>
       )}
 

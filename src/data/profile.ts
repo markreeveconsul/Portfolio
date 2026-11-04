@@ -1,6 +1,6 @@
 export const profile = {
-  name: "[YOUR NAME]",
-  firstName: "[YOUR NAME]",
+  name: "Your Name",
+  firstName: "Your Name",
   role: "IT Student · Developer",
   roleLineOne: "IT student.",
   roleLineTwo: "Developer.",
