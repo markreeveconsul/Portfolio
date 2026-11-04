@@ -81,7 +81,7 @@ body{background-color:var(--bg);background-image:radial-gradient(ellipse 50% 40%
 .css-id-float{width:100%;height:100%;transform-style:preserve-3d;animation:portfolio-card-float 4.8s ease-in-out infinite}
 .css-id-card{position:relative;width:250px;height:356px;transform-style:preserve-3d;transition:transform .12s ease-out;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .css-id-card:active{cursor:grabbing}
-.css-id-face{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:25px 23px;border:1px solid rgba(255,255,255,.12);border-radius:21px;background:linear-gradient(145deg,#191c28,#0f1118 78%);box-shadow:inset 0 1px rgba(255,255,255,.08),0 30px 70px rgba(0,0,0,.42);backface-visibility:hidden;overflow:hidden}
+.css-id-face{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:25px 23px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:linear-gradient(145deg,#191c28,#0f1118 78%);box-shadow:inset 0 1px rgba(255,255,255,.06),0 22px 52px rgba(0,0,0,.38);backface-visibility:hidden;overflow:hidden}
 .css-id-face:before{content:"";position:absolute;inset:9px;border:1px solid rgba(255,255,255,.055);border-radius:14px;pointer-events:none}
 .css-id-front{align-items:flex-start}.css-id-back{transform:rotateY(180deg);background:linear-gradient(145deg,#171c27,#101218 78%)}
 .css-id-label{display:flex;justify-content:space-between;width:100%;color:#adb3ca;font:9px var(--mono);letter-spacing:.08em}
