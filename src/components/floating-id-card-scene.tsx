@@ -2,15 +2,78 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
 import * as THREE from "three";
-import { profileFacts } from "@/data/profile-facts";
-import { fitCardText, idCardCopy, idCardDimensions, idCardPalette } from "@/data/id-card-design";
+import { idCardDimensions, idCardPalette } from "@/data/id-card-design";
+import type { CardFaceCanvases } from "@/components/id-card-textures";
 
 const CARD_WIDTH = idCardDimensions.width;
 const CARD_HEIGHT = idCardDimensions.height;
 const CARD_DEPTH = idCardDimensions.depth;
 const CARD_HALF_WIDTH = CARD_WIDTH / 2;
+const FACE_WIDTH = CARD_HEIGHT * (380 / 590);
+const FACE_HALF_WIDTH = FACE_WIDTH / 2;
+const sheenVertexShader = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewNormal;
+  void main() {
+    vUv = uv;
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = -viewPosition.xyz;
+    vViewNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`;
+const sheenFragmentShader = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewNormal;
+  void main() {
+    float facing = abs(dot(normalize(vViewNormal), normalize(vViewPosition)));
+    float diagonal = vUv.x + (1.0 - vUv.y) * 0.34;
+    float sweepCenter = 0.52 + (1.0 - facing) * 0.55;
+    float distanceFromSweep = abs(diagonal - sweepCenter);
+    float band = 1.0 - smoothstep(0.12, 0.48, distanceFromSweep);
+    float hueShift = clamp((diagonal - sweepCenter + 0.32) / 0.64, 0.0, 1.0);
+    vec3 ice = vec3(0.66, 0.84, 0.91);
+    vec3 pearl = vec3(0.91, 0.92, 0.94);
+    vec3 lilac = vec3(0.83, 0.73, 0.88);
+    vec3 rose = vec3(0.91, 0.76, 0.86);
+    vec3 champagne = vec3(0.96, 0.91, 0.76);
+    vec3 spectrum = mix(ice, lilac, smoothstep(0.08, 0.38, hueShift));
+    spectrum = mix(spectrum, rose, smoothstep(0.38, 0.62, hueShift));
+    spectrum = mix(spectrum, champagne, smoothstep(0.62, 0.82, hueShift));
+    spectrum = mix(spectrum, pearl, smoothstep(0.82, 1.0, hueShift));
+    float intensity = min(0.22 + (1.0 - facing) * 0.16, 0.36);
+    gl_FragColor = vec4(spectrum, band * intensity);
+  }
+`;
+const foilFragmentShader = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewNormal;
+  void main() {
+    float facing = abs(dot(normalize(vViewNormal), normalize(vViewPosition)));
+    float t = vUv.y;
+    vec3 graphite = vec3(0.42, 0.45, 0.49);
+    vec3 pearl = vec3(0.93, 0.94, 0.96);
+    vec3 platinum = vec3(0.75, 0.79, 0.84);
+    vec3 ice = vec3(0.66, 0.84, 0.91);
+    vec3 lilac = vec3(0.82, 0.70, 0.88);
+    vec3 rose = vec3(0.91, 0.72, 0.84);
+    vec3 champagne = vec3(0.96, 0.88, 0.68);
+    vec3 spectrum = mix(graphite, pearl, smoothstep(0.0, 0.12, t));
+    spectrum = mix(spectrum, platinum, smoothstep(0.12, 0.27, t));
+    spectrum = mix(spectrum, ice, smoothstep(0.27, 0.38, t));
+    spectrum = mix(spectrum, lilac, smoothstep(0.38, 0.48, t));
+    spectrum = mix(spectrum, rose, smoothstep(0.48, 0.59, t));
+    spectrum = mix(spectrum, pearl, smoothstep(0.59, 0.72, t));
+    spectrum = mix(spectrum, platinum, smoothstep(0.72, 0.88, t));
+    spectrum = mix(spectrum, graphite, smoothstep(0.88, 1.0, t));
+    float angleLift = 0.78 + (1.0 - facing) * 0.22;
+    gl_FragColor = vec4(spectrum, angleLift);
+  }
+`;
 
 function createCardGeometry() {
   const halfWidth = CARD_WIDTH / 2;
@@ -42,18 +105,72 @@ function createCardGeometry() {
 
 type DragState = { active: boolean; pointerId: number | null; x: number; y: number };
 
-function FloatingCard({ paused, fast, faceBack }: { paused: boolean; fast: boolean; faceBack: boolean }) {
+function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
+  paused: boolean;
+  fast: boolean;
+  faceBack: boolean;
+  faces: CardFaceCanvases;
+  onFlip: () => void;
+}) {
   const card = useRef<THREE.Group>(null);
   const targetRotation = useRef({ x: 0, y: 0 });
   const drag = useRef<DragState>({ active: false, pointerId: null, x: 0, y: 0 });
   const cardGeometry = useMemo(createCardGeometry, []);
-  const nameFontSize = fitCardText(idCardCopy.name, 0.225, 1.99, 0.12);
-  const roleFontSize = fitCardText(idCardCopy.role, 0.085, 1.99, 0.06);
-  const focusFontSize = fitCardText(idCardCopy.focus, 0.12, 1.99, 0.08);
   const { gl, viewport } = useThree();
   const cardX = Math.max(0, Math.min(2, viewport.width / 2 - CARD_HALF_WIDTH - 0.35));
+  const textures = useMemo(() => {
+    const front = new THREE.CanvasTexture(faces.front);
+    const back = new THREE.CanvasTexture(faces.back);
+    for (const texture of [front, back]) {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = gl.capabilities.getMaxAnisotropy();
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = true;
+    }
+    return { front, back };
+  }, [faces, gl]);
+  const faceGeometry = useMemo(() => new THREE.PlaneGeometry(FACE_WIDTH, CARD_HEIGHT), []);
+  const foilGeometry = useMemo(() => new THREE.PlaneGeometry(0.035, CARD_HEIGHT * (498 / 590)), []);
+  const foilMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: idCardPalette.platinum,
+    metalness: 0.82,
+    roughness: 0.64,
+    iridescence: 1.0,
+    iridescenceIOR: 1.3,
+    iridescenceThicknessRange: [120, 460],
+    clearcoat: 0.14,
+    clearcoatRoughness: 0.72,
+  }), []);
+  const foilSpectrumMaterial = useMemo(() => new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    vertexShader: sheenVertexShader,
+    fragmentShader: foilFragmentShader,
+  }), []);
+  const sheenMaterial = useMemo(() => new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    vertexShader: sheenVertexShader,
+    fragmentShader: sheenFragmentShader,
+  }), []);
+  const frontFaceMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: textures.front, toneMapped: false, transparent: true, alphaTest: 0.05, depthWrite: false }), [textures.front]);
+  const backFaceMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: textures.back, toneMapped: false, transparent: true, alphaTest: 0.05, depthWrite: false }), [textures.back]);
 
-  useEffect(() => () => cardGeometry.dispose(), [cardGeometry]);
+  useEffect(() => () => {
+    cardGeometry.dispose();
+    faceGeometry.dispose();
+    foilGeometry.dispose();
+    textures.front.dispose();
+    textures.back.dispose();
+    foilMaterial.dispose();
+    foilSpectrumMaterial.dispose();
+    sheenMaterial.dispose();
+    frontFaceMaterial.dispose();
+    backFaceMaterial.dispose();
+  }, [cardGeometry, faceGeometry, foilGeometry, textures, foilMaterial, foilSpectrumMaterial, sheenMaterial, frontFaceMaterial, backFaceMaterial]);
 
   useEffect(() => {
     const turns = Math.round(targetRotation.current.y / (Math.PI * 2));
@@ -108,65 +225,50 @@ function FloatingCard({ paused, fast, faceBack }: { paused: boolean; fast: boole
     document.body.style.cursor = "grabbing";
   }
 
-  return <group ref={card} position={[cardX, 0, 0]} onPointerDown={startDrag} onPointerOver={() => { if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { if (!drag.current.active) document.body.style.cursor = ""; }}>
+  return <group ref={card} position={[cardX, 0, 0]} onPointerDown={startDrag} onClick={(event) => { if (event.delta < 6) onFlip(); }} onPointerOver={() => { if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { if (!drag.current.active) document.body.style.cursor = ""; }}>
     <mesh geometry={cardGeometry}>
-      <meshPhysicalMaterial color={idCardPalette.shell} roughness={0.42} metalness={0.18} clearcoat={0.32} clearcoatRoughness={0.34} />
+      <meshPhysicalMaterial color={idCardPalette.card} roughness={0.52} metalness={0.12} clearcoat={0.2} clearcoatRoughness={0.52} />
     </mesh>
-
-    {/* Front: matching labels and alignment with the CSS fallback card. */}
-    <mesh position={[-1.02, 0.72, 0.032]}><boxGeometry args={[0.025, 0.46, 0.002]} /><meshBasicMaterial color={idCardPalette.accent} /></mesh>
-    {[1.18, 1.1, 1.02].map((y, index) => <mesh key={y} position={[0.82 - index * 0.025, y, 0.032]}><boxGeometry args={[0.34 - index * 0.05, 0.008, 0.002]} /><meshBasicMaterial color={index === 0 ? idCardPalette.accent : idCardPalette.accentSoft} /></mesh>)}
-    <Text position={[-0.995, 1.4, 0.032]} fontSize={0.078} color={idCardPalette.secondary} anchorX="left" anchorY="middle" letterSpacing={0.012}>{idCardCopy.frontLabel}</Text>
-    <Text position={[0.99, 1.4, 0.032]} fontSize={0.064} color={idCardPalette.label} anchorX="right" anchorY="middle" letterSpacing={0.008}>{idCardCopy.serial}</Text>
-    <Text position={[-0.995, 0.86, 0.032]} fontSize={nameFontSize} color={idCardPalette.primaryText} anchorX="left" anchorY="middle" maxWidth={1.99} textAlign="left">{idCardCopy.name}</Text>
-    <Text position={[-0.995, 0.48, 0.032]} fontSize={roleFontSize} color={idCardPalette.secondary} anchorX="left" anchorY="middle" letterSpacing={0.006} maxWidth={1.99} textAlign="left">{idCardCopy.role}</Text>
-    <mesh position={[-0.435, -0.13, 0.032]}><boxGeometry args={[1.12, 0.01, 0.002]} /><meshBasicMaterial color={idCardPalette.accentSoft} /></mesh>
-    <Text position={[-0.995, -0.43, 0.032]} fontSize={0.075} color={idCardPalette.label} anchorX="left" anchorY="middle" letterSpacing={0.012}>{idCardCopy.focusLabel}</Text>
-    <Text position={[-0.995, -0.78, 0.032]} fontSize={focusFontSize} color={idCardPalette.bodyText} anchorX="left" anchorY="middle" maxWidth={1.99} textAlign="left">{idCardCopy.focus}</Text>
-    <group position={[0, 0, 0]}>
-      <mesh position={[0.8, -1.31, 0.032]}><boxGeometry args={[0.37, 0.008, 0.002]} /><meshBasicMaterial color={idCardPalette.accent} transparent opacity={0.42} /></mesh>
-      <mesh position={[0.98, -1.4, 0.032]}><boxGeometry args={[0.008, 0.18, 0.002]} /><meshBasicMaterial color={idCardPalette.accent} transparent opacity={0.42} /></mesh>
-      <mesh position={[0.89, -1.49, 0.032]}><boxGeometry args={[0.18, 0.008, 0.002]} /><meshBasicMaterial color={idCardPalette.accent} transparent opacity={0.42} /></mesh>
-    </group>
-
-    {/* Back: editable facts, kept short so they remain readable while the card turns. */}
-    <group rotation={[0, Math.PI, 0]}>
-      <Text position={[-0.995, 1.4, 0.032]} fontSize={0.078} color={idCardPalette.secondary} anchorX="left" anchorY="middle" letterSpacing={0.014}>{idCardCopy.backHeading}</Text>
-      {profileFacts.map((fact, index) => {
-        const y = 0.7 - index * 0.78;
-        return <group key={fact.label}>
-          <mesh position={[0, y - 0.2, 0.032]}><boxGeometry args={[1.99, 0.01, 0.002]} /><meshBasicMaterial color={idCardPalette.backRule} /></mesh>
-          <Text position={[-0.995, y + 0.06, 0.032]} fontSize={0.078} color={idCardPalette.factLabel} anchorX="left" anchorY="middle" letterSpacing={0.012}>{fact.label}</Text>
-          <Text position={[-0.995, y - 0.11, 0.032]} fontSize={fitCardText(fact.value, 0.12, 1.99, 0.085)} color={idCardPalette.factText} anchorX="left" anchorY="middle" maxWidth={1.99} textAlign="left">{fact.value}</Text>
-        </group>;
-      })}
-    </group>
+    <mesh geometry={faceGeometry} position={[0, 0, CARD_DEPTH / 2 + 0.002]} material={frontFaceMaterial} />
+    <mesh geometry={faceGeometry} position={[0, 0, -CARD_DEPTH / 2 - 0.002]} rotation={[0, Math.PI, 0]} material={backFaceMaterial} />
+    <mesh geometry={faceGeometry} position={[0, 0, CARD_DEPTH / 2 + 0.004]} material={sheenMaterial} renderOrder={2} />
+    <mesh geometry={faceGeometry} position={[0, 0, -CARD_DEPTH / 2 - 0.004]} rotation={[0, Math.PI, 0]} material={sheenMaterial} renderOrder={2} />
+    <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.006]} material={foilMaterial} renderOrder={3} />
+    <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.006]} rotation={[0, Math.PI, 0]} material={foilMaterial} renderOrder={3} />
+    <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.008]} material={foilSpectrumMaterial} renderOrder={4} />
+    <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.008]} rotation={[0, Math.PI, 0]} material={foilSpectrumMaterial} renderOrder={4} />
   </group>;
 }
 
-function CardRig({ paused, fast, faceBack }: { paused: boolean; fast: boolean; faceBack: boolean }) {
-  return <FloatingCard paused={paused} fast={fast} faceBack={faceBack} />;
+function CardRig({ paused, fast, faceBack, faces, onFlip }: {
+  paused: boolean;
+  fast: boolean;
+  faceBack: boolean;
+  faces: CardFaceCanvases;
+  onFlip: () => void;
+}) {
+  return <FloatingCard paused={paused} fast={fast} faceBack={faceBack} faces={faces} onFlip={onFlip} />;
 }
 
 function HoldToBoost({ fast, onChange }: { fast: boolean; onChange: (value: boolean) => void }) {
   return <button className="id-control id-control-boost" type="button" aria-pressed={fast} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); onChange(true); }} onPointerUp={() => onChange(false)} onPointerCancel={() => onChange(false)} onPointerLeave={() => onChange(false)} onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") onChange(true); }} onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") onChange(false); }} onBlur={() => onChange(false)} onContextMenu={(event) => event.preventDefault()}>Hold to speed up</button>;
 }
 
-export function HeroIdCardScene() {
+export function HeroIdCardScene({ faces }: { faces: CardFaceCanvases }) {
   const [paused, setPaused] = useState(false);
   const [fast, setFast] = useState(false);
   const [faceBack, setFaceBack] = useState(false);
+  const flip = () => setFaceBack((value) => !value);
   return <div className="hero-card-stage hero-card-canvas" role="group" aria-label="Floating 3D portfolio card">
     <Canvas dpr={[1, 1.4]} camera={{ position: [0, 0.05, 8], fov: 34 }} gl={{ alpha: true, antialias: true }} onCreated={({ gl }) => { gl.setClearColor("#000000", 0); }}>
-      <ambientLight intensity={1.25} />
-      <directionalLight position={[3, 4, 5]} intensity={1.8} />
-      <pointLight position={[2, 0.8, 3]} intensity={4} color="#57e2d3" />
-      <pointLight position={[-2, -1, 2]} intensity={1.5} color="#7bd7d1" />
-      <CardRig paused={paused} fast={fast} faceBack={faceBack} />
+      <ambientLight intensity={0.82} />
+      <directionalLight position={[2, 3, 5]} intensity={1.25} />
+      <directionalLight position={[-3, -1, -4]} intensity={0.35} color="#C9D0DA" />
+      <CardRig paused={paused} fast={fast} faceBack={faceBack} faces={faces} onFlip={flip} />
     </Canvas>
     <div className="id-control-dock" role="group" aria-label="ID card controls">
       <button className="id-control" type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>{paused ? "Resume spin" : "Pause to read"}</button>
-      <button className="id-control" type="button" aria-pressed={faceBack} onClick={() => { setPaused(true); setFaceBack((value) => !value); }}>{faceBack ? "Show front" : "Read the back"}</button>
+      <button className="id-control" type="button" aria-pressed={faceBack} onClick={flip}>{faceBack ? "Show front" : "Read the back"}</button>
       <HoldToBoost fast={fast} onChange={setFast} />
     </div>
     <span className="sr-only">The card slowly rotates. Drag it to tilt, pause it to read, or hold the speed control to spin faster.</span>
