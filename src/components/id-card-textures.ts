@@ -211,11 +211,11 @@ function drawFront(ctx: CanvasRenderingContext2D, displayFont: string, monoFont:
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.letterSpacing = "-0.01em";
-  const firstBaseline = 374;
+  const firstBaseline = 368;
   idCardCopy.nameLines.forEach((line, index) => ctx.fillText(line.toUpperCase(), 22, firstBaseline + index * nameSize * 0.94, nameMaxWidth));
   ctx.letterSpacing = "0px";
 
-  const ruleY = firstBaseline + nameSize * 0.94 * 3 - nameSize * 0.1 + 10;
+  const ruleY = firstBaseline + nameSize * 0.94 * 2 + nameSize * 0.45;
   const rule = ctx.createLinearGradient(22, 0, 78, 0);
   rule.addColorStop(0, idCardPalette.dimPlatinum);
   rule.addColorStop(0.5, idCardPalette.ink);
@@ -228,11 +228,11 @@ function drawFront(ctx: CanvasRenderingContext2D, displayFont: string, monoFont:
 
   ctx.font = `500 14px ${monoFont}`;
   ctx.fillStyle = idCardPalette.platinum;
-  ctx.fillText(idCardCopy.frontSkills[0], 22, 523);
-  ctx.fillText(idCardCopy.frontSkills[1], 22, 545);
+  ctx.fillText(idCardCopy.frontSkills[0], 22, 535);
+  ctx.fillText(idCardCopy.frontSkills[1], 22, 557);
   ctx.fillStyle = idCardPalette.ink;
-  ctx.fillRect(22, 512, 6, 6);
-  ctx.fillRect(22, 534, 6, 6);
+  ctx.fillRect(22, 524, 6, 6);
+  ctx.fillRect(22, 546, 6, 6);
   drawQRPanel(ctx, qr, 302, 512);
 }
 
@@ -253,7 +253,7 @@ function drawBack(ctx: CanvasRenderingContext2D, monoFont: string, archLogo: HTM
   ctx.fillText(idCardCopy.terminalCommand, 22 + ctx.measureText(idCardCopy.terminalUser).width, 100);
   ctx.fillText(idCardCopy.fullName, 22, 129);
 
-  const rowsTop = 116;
+  const rowsTop = 152;
   const rowHeight = 30;
   idCardCopy.backRows.forEach((row, index) => {
     const y = rowsTop + index * rowHeight;

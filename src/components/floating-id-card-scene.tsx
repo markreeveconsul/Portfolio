@@ -12,6 +12,68 @@ const CARD_DEPTH = idCardDimensions.depth;
 const CARD_HALF_WIDTH = CARD_WIDTH / 2;
 const FACE_WIDTH = CARD_HEIGHT * (380 / 590);
 const FACE_HALF_WIDTH = FACE_WIDTH / 2;
+const sheenVertexShader = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewNormal;
+  void main() {
+    vUv = uv;
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    vViewPosition = -viewPosition.xyz;
+    vViewNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`;
+const sheenFragmentShader = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewNormal;
+  void main() {
+    float facing = abs(dot(normalize(vViewNormal), normalize(vViewPosition)));
+    float diagonal = vUv.x + (1.0 - vUv.y) * 0.34;
+    float sweepCenter = 0.52 + (1.0 - facing) * 0.55;
+    float distanceFromSweep = abs(diagonal - sweepCenter);
+    float band = 1.0 - smoothstep(0.12, 0.48, distanceFromSweep);
+    float hueShift = clamp((diagonal - sweepCenter + 0.32) / 0.64, 0.0, 1.0);
+    vec3 ice = vec3(0.66, 0.84, 0.91);
+    vec3 pearl = vec3(0.91, 0.92, 0.94);
+    vec3 lilac = vec3(0.83, 0.73, 0.88);
+    vec3 rose = vec3(0.91, 0.76, 0.86);
+    vec3 champagne = vec3(0.96, 0.91, 0.76);
+    vec3 spectrum = mix(ice, lilac, smoothstep(0.08, 0.38, hueShift));
+    spectrum = mix(spectrum, rose, smoothstep(0.38, 0.62, hueShift));
+    spectrum = mix(spectrum, champagne, smoothstep(0.62, 0.82, hueShift));
+    spectrum = mix(spectrum, pearl, smoothstep(0.82, 1.0, hueShift));
+    float intensity = min(0.22 + (1.0 - facing) * 0.16, 0.36);
+    gl_FragColor = vec4(spectrum, band * intensity);
+  }
+`;
+const foilFragmentShader = `
+  varying vec2 vUv;
+  varying vec3 vViewPosition;
+  varying vec3 vViewNormal;
+  void main() {
+    float facing = abs(dot(normalize(vViewNormal), normalize(vViewPosition)));
+    float t = vUv.y;
+    vec3 graphite = vec3(0.42, 0.45, 0.49);
+    vec3 pearl = vec3(0.93, 0.94, 0.96);
+    vec3 platinum = vec3(0.75, 0.79, 0.84);
+    vec3 ice = vec3(0.66, 0.84, 0.91);
+    vec3 lilac = vec3(0.82, 0.70, 0.88);
+    vec3 rose = vec3(0.91, 0.72, 0.84);
+    vec3 champagne = vec3(0.96, 0.88, 0.68);
+    vec3 spectrum = mix(graphite, pearl, smoothstep(0.0, 0.12, t));
+    spectrum = mix(spectrum, platinum, smoothstep(0.12, 0.27, t));
+    spectrum = mix(spectrum, ice, smoothstep(0.27, 0.38, t));
+    spectrum = mix(spectrum, lilac, smoothstep(0.38, 0.48, t));
+    spectrum = mix(spectrum, rose, smoothstep(0.48, 0.59, t));
+    spectrum = mix(spectrum, pearl, smoothstep(0.59, 0.72, t));
+    spectrum = mix(spectrum, platinum, smoothstep(0.72, 0.88, t));
+    spectrum = mix(spectrum, graphite, smoothstep(0.88, 1.0, t));
+    float angleLift = 0.78 + (1.0 - facing) * 0.22;
+    gl_FragColor = vec4(spectrum, angleLift);
+  }
+`;
 
 function createCardGeometry() {
   const halfWidth = CARD_WIDTH / 2;
@@ -71,17 +133,31 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
   const faceGeometry = useMemo(() => new THREE.PlaneGeometry(FACE_WIDTH, CARD_HEIGHT), []);
   const foilGeometry = useMemo(() => new THREE.PlaneGeometry(0.035, CARD_HEIGHT * (498 / 590)), []);
   const foilMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: idCardPalette.dimPlatinum,
-    metalness: 0.88,
-    roughness: 0.72,
-    iridescence: 0.38,
-    iridescenceIOR: 1.28,
-    iridescenceThicknessRange: [120, 280],
-    clearcoat: 0.1,
-    clearcoatRoughness: 0.8,
+    color: idCardPalette.platinum,
+    metalness: 0.82,
+    roughness: 0.64,
+    iridescence: 1.0,
+    iridescenceIOR: 1.3,
+    iridescenceThicknessRange: [120, 460],
+    clearcoat: 0.14,
+    clearcoatRoughness: 0.72,
   }), []);
-  const frontFaceMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({ map: textures.front, roughness: 0.86, metalness: 0.02, clearcoat: 0.04, clearcoatRoughness: 0.9, transparent: true, alphaTest: 0.05, depthWrite: false }), [textures.front]);
-  const backFaceMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({ map: textures.back, roughness: 0.86, metalness: 0.02, clearcoat: 0.04, clearcoatRoughness: 0.9, transparent: true, alphaTest: 0.05, depthWrite: false }), [textures.back]);
+  const foilSpectrumMaterial = useMemo(() => new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    vertexShader: sheenVertexShader,
+    fragmentShader: foilFragmentShader,
+  }), []);
+  const sheenMaterial = useMemo(() => new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    vertexShader: sheenVertexShader,
+    fragmentShader: sheenFragmentShader,
+  }), []);
+  const frontFaceMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: textures.front, toneMapped: false, transparent: true, alphaTest: 0.05, depthWrite: false }), [textures.front]);
+  const backFaceMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: textures.back, toneMapped: false, transparent: true, alphaTest: 0.05, depthWrite: false }), [textures.back]);
 
   useEffect(() => () => {
     cardGeometry.dispose();
@@ -90,9 +166,11 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     textures.front.dispose();
     textures.back.dispose();
     foilMaterial.dispose();
+    foilSpectrumMaterial.dispose();
+    sheenMaterial.dispose();
     frontFaceMaterial.dispose();
     backFaceMaterial.dispose();
-  }, [cardGeometry, faceGeometry, foilGeometry, textures, foilMaterial, frontFaceMaterial, backFaceMaterial]);
+  }, [cardGeometry, faceGeometry, foilGeometry, textures, foilMaterial, foilSpectrumMaterial, sheenMaterial, frontFaceMaterial, backFaceMaterial]);
 
   useEffect(() => {
     const turns = Math.round(targetRotation.current.y / (Math.PI * 2));
@@ -153,8 +231,12 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     </mesh>
     <mesh geometry={faceGeometry} position={[0, 0, CARD_DEPTH / 2 + 0.002]} material={frontFaceMaterial} />
     <mesh geometry={faceGeometry} position={[0, 0, -CARD_DEPTH / 2 - 0.002]} rotation={[0, Math.PI, 0]} material={backFaceMaterial} />
-    <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.004]} material={foilMaterial} />
-    <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.004]} rotation={[0, Math.PI, 0]} material={foilMaterial} />
+    <mesh geometry={faceGeometry} position={[0, 0, CARD_DEPTH / 2 + 0.004]} material={sheenMaterial} renderOrder={2} />
+    <mesh geometry={faceGeometry} position={[0, 0, -CARD_DEPTH / 2 - 0.004]} rotation={[0, Math.PI, 0]} material={sheenMaterial} renderOrder={2} />
+    <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.006]} material={foilMaterial} renderOrder={3} />
+    <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.006]} rotation={[0, Math.PI, 0]} material={foilMaterial} renderOrder={3} />
+    <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.008]} material={foilSpectrumMaterial} renderOrder={4} />
+    <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.008]} rotation={[0, Math.PI, 0]} material={foilSpectrumMaterial} renderOrder={4} />
   </group>;
 }
 
