@@ -22,10 +22,12 @@ export const idCardPalette = {
 } as const;
 
 export const idCardCopy = {
+  name: "Mark Reeve Consul",
+  role: "IT STUDENT · FULL STACK DEVELOPER",
   frontLabel: "NET ID / PORTFOLIO",
   serial: "PROFILE 001",
   focusLabel: "CURRENT FOCUS",
-  focus: "Useful digital experiences",
+  focus: "Backend development & networking",
   backHeading: "A FEW THINGS ABOUT ME",
 } as const;
 

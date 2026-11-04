@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
-import { profile } from "@/data/profile";
 import { profileFacts } from "@/data/profile-facts";
 import { fitCardText, idCardCopy, idCardDimensions, idCardPalette } from "@/data/id-card-design";
 
@@ -48,8 +47,8 @@ function FloatingCard({ paused, fast, faceBack }: { paused: boolean; fast: boole
   const targetRotation = useRef({ x: 0, y: 0 });
   const drag = useRef<DragState>({ active: false, pointerId: null, x: 0, y: 0 });
   const cardGeometry = useMemo(createCardGeometry, []);
-  const nameFontSize = fitCardText(profile.name, 0.225, 1.99, 0.12);
-  const roleFontSize = fitCardText(profile.role.toUpperCase(), 0.085, 1.99, 0.06);
+  const nameFontSize = fitCardText(idCardCopy.name, 0.225, 1.99, 0.12);
+  const roleFontSize = fitCardText(idCardCopy.role, 0.085, 1.99, 0.06);
   const focusFontSize = fitCardText(idCardCopy.focus, 0.12, 1.99, 0.08);
   const { gl, viewport } = useThree();
   const cardX = Math.max(0, Math.min(2, viewport.width / 2 - CARD_HALF_WIDTH - 0.35));
@@ -119,8 +118,8 @@ function FloatingCard({ paused, fast, faceBack }: { paused: boolean; fast: boole
     {[1.18, 1.1, 1.02].map((y, index) => <mesh key={y} position={[0.82 - index * 0.025, y, 0.032]}><boxGeometry args={[0.34 - index * 0.05, 0.008, 0.002]} /><meshBasicMaterial color={index === 0 ? idCardPalette.accent : idCardPalette.accentSoft} /></mesh>)}
     <Text position={[-0.995, 1.4, 0.032]} fontSize={0.078} color={idCardPalette.secondary} anchorX="left" anchorY="middle" letterSpacing={0.012}>{idCardCopy.frontLabel}</Text>
     <Text position={[0.99, 1.4, 0.032]} fontSize={0.064} color={idCardPalette.label} anchorX="right" anchorY="middle" letterSpacing={0.008}>{idCardCopy.serial}</Text>
-    <Text position={[-0.995, 0.86, 0.032]} fontSize={nameFontSize} color={idCardPalette.primaryText} anchorX="left" anchorY="middle" maxWidth={1.99} textAlign="left">{profile.name}</Text>
-    <Text position={[-0.995, 0.48, 0.032]} fontSize={roleFontSize} color={idCardPalette.secondary} anchorX="left" anchorY="middle" letterSpacing={0.006} maxWidth={1.99} textAlign="left">{profile.role.toUpperCase()}</Text>
+    <Text position={[-0.995, 0.86, 0.032]} fontSize={nameFontSize} color={idCardPalette.primaryText} anchorX="left" anchorY="middle" maxWidth={1.99} textAlign="left">{idCardCopy.name}</Text>
+    <Text position={[-0.995, 0.48, 0.032]} fontSize={roleFontSize} color={idCardPalette.secondary} anchorX="left" anchorY="middle" letterSpacing={0.006} maxWidth={1.99} textAlign="left">{idCardCopy.role}</Text>
     <mesh position={[-0.435, -0.13, 0.032]}><boxGeometry args={[1.12, 0.01, 0.002]} /><meshBasicMaterial color={idCardPalette.accentSoft} /></mesh>
     <Text position={[-0.995, -0.43, 0.032]} fontSize={0.075} color={idCardPalette.label} anchorX="left" anchorY="middle" letterSpacing={0.012}>{idCardCopy.focusLabel}</Text>
     <Text position={[-0.995, -0.78, 0.032]} fontSize={focusFontSize} color={idCardPalette.bodyText} anchorX="left" anchorY="middle" maxWidth={1.99} textAlign="left">{idCardCopy.focus}</Text>

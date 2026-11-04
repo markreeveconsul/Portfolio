@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { Component, useEffect, useRef, useState, type CSSProperties, type ErrorInfo, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { profile } from "@/data/profile";
 import { profileFacts } from "@/data/profile-facts";
 import { fitCardText, idCardCopy, idCardCssVars } from "@/data/id-card-design";
 
@@ -31,15 +30,15 @@ function CssIdCard({ reducedMotion = false }: { reducedMotion?: boolean }) {
     pointer.current = null;
   }
   const cardStyle = { ...idCardCssVars, transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` } as CSSProperties;
-  const nameSize = fitCardText(profile.name, 23, 180, 15);
-  const roleSize = fitCardText(profile.role.toUpperCase(), 8.5, 180, 7);
+  const nameSize = fitCardText(idCardCopy.name, 23, 180, 15);
+  const roleSize = fitCardText(idCardCopy.role, 8.5, 180, 7);
   const focusSize = fitCardText(idCardCopy.focus, 13, 180, 10);
 
   return <div className="hero-card-stage css-id-stage" role="group" aria-label="Floating portfolio card">
     <div className={`css-id-orbit${paused ? " is-paused" : ""}${fast ? " is-boosted" : ""}${faceBack && paused ? " is-directed is-back" : ""}`}>
       <div className="css-id-float">
         <div className="css-id-card" style={cardStyle} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}>
-          <div className="css-id-face css-id-front"><span className="css-id-label"><span>{idCardCopy.frontLabel}</span><small>{idCardCopy.serial}</small></span><span className="css-id-accent" aria-hidden="true" /><strong style={{ fontSize: `${nameSize}px` }}>{profile.name}</strong><span className="css-id-role" style={{ fontSize: `${roleSize}px` }}>{profile.role.toUpperCase()}</span><span className="css-id-rule" /><span className="css-id-focus-label">{idCardCopy.focusLabel}</span><span className="css-id-focus" style={{ fontSize: `${focusSize}px` }}>{idCardCopy.focus}</span><span className="css-id-trace" aria-hidden="true" /></div>
+          <div className="css-id-face css-id-front"><span className="css-id-label"><span>{idCardCopy.frontLabel}</span><small>{idCardCopy.serial}</small></span><span className="css-id-accent" aria-hidden="true" /><strong style={{ fontSize: `${nameSize}px` }}>{idCardCopy.name}</strong><span className="css-id-role" style={{ fontSize: `${roleSize}px` }}>{idCardCopy.role}</span><span className="css-id-rule" /><span className="css-id-focus-label">{idCardCopy.focusLabel}</span><span className="css-id-focus" style={{ fontSize: `${focusSize}px` }}>{idCardCopy.focus}</span><span className="css-id-trace" aria-hidden="true" /></div>
           <div className="css-id-face css-id-back"><span className="css-id-label">{idCardCopy.backHeading}</span>{profileFacts.map((fact, index) => <div className={`css-id-fact css-id-fact-${index + 1}`} key={fact.label}><small>{fact.label}</small><span style={{ fontSize: `${fitCardText(fact.value, 13, 180, 10)}px` }}>{fact.value}</span></div>)}</div>
         </div>
       </div>
