@@ -396,7 +396,7 @@ export function ChatMascot() {
               </div>
             )}
           </div>
-          <p className="chat-footer-note">Your message is sent to the AI service for a reply. Don’t share sensitive information.</p>
+          <p className="chat-footer-note">Recent chat goes to Gemini and may also go to Groq if Gemini is slow. Don’t share sensitive information.</p>
         </section>
       )}
 

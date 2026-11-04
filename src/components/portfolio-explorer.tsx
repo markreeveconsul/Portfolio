@@ -85,7 +85,7 @@ export function PortfolioExplorer() {
 
     <div id="panel-projects" role="tabpanel" aria-labelledby="tab-projects" tabIndex={0} hidden={active !== "projects"}>
       {active === "projects" && <div className="project-grid">
-        {projects.map((project) => <article className="project-card glass-card" key={project.slug}>
+        {projects.map((project) => <article className={`project-card glass-card${project.featured ? " project-card-featured" : ""}`} key={project.slug}>
           <Link className="project-image" href={`/portfolio/${project.slug}`} aria-label={`View details for ${project.name}`}>
             <Image src={project.image} alt={project.imageAlt} fill sizes="(max-width: 680px) 100vw, (max-width: 900px) 50vw, 33vw" />
             <span className="status-badge">{project.status}</span>

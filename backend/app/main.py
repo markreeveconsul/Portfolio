@@ -167,6 +167,11 @@ def _check_rate_limit(client_ip: str) -> None:
     bucket.append(now)
 
 
+def _approved_system_instruction(messages: list[ChatMessage]) -> str:
+    context = retrieve_portfolio_context(messages[-1].content)
+    return SYSTEM_INSTRUCTION + "\n\nRetrieved approved portfolio context:\n" + context
+
+
 def _gemini_request(messages: list[ChatMessage]) -> str:
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
@@ -180,7 +185,7 @@ def _gemini_request(messages: list[ChatMessage]) -> str:
     payload = json.dumps({
         "model": model,
         "input": transcript,
-        "system_instruction": SYSTEM_INSTRUCTION + "\n\nRetrieved approved portfolio context:\n" + retrieve_portfolio_context(messages[-1].content),
+        "system_instruction": _approved_system_instruction(messages),
         "store": False,
         "generation_config": {"temperature": 0.3, "max_output_tokens": 500},
     }).encode("utf-8")
@@ -208,7 +213,7 @@ def _gemini_request(messages: list[ChatMessage]) -> str:
                 raise HTTPException(status_code=503, detail="The AI service is temporarily unavailable. Please try again shortly.") from None
             raise HTTPException(status_code=502, detail="The assistant could not respond right now.") from None
         except (URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError):
-            raise HTTPException(status_code=502, detail="The assistant could not respond right now.") from None
+            raise HTTPException(status_code=503, detail="The AI service is temporarily unavailable. Please try again shortly.") from None
 
     reply = "".join(
         item.get("text", "")
@@ -220,6 +225,102 @@ def _gemini_request(messages: list[ChatMessage]) -> str:
     if not reply:
         raise HTTPException(status_code=502, detail="The assistant returned an empty response.")
     return reply[:4000]
+
+
+def _groq_request(messages: list[ChatMessage]) -> str:
+    api_key = os.getenv("GROQ_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="The backup assistant provider is not configured.")
+
+    model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b").strip()
+    chat_messages = [{"role": "system", "content": _approved_system_instruction(messages)}]
+    chat_messages.extend({"role": message.role, "content": message.content} for message in messages)
+    payload = json.dumps({
+        "model": model,
+        "messages": chat_messages,
+        "temperature": 0.3,
+        "max_completion_tokens": 500,
+    }).encode("utf-8")
+    request = Request(
+        "https://api.groq.com/openai/v1/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=25) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        if exc.code in (401, 403):
+            raise HTTPException(status_code=503, detail="The backup assistant provider is not configured correctly.") from None
+        if exc.code == 429:
+            raise HTTPException(status_code=503, detail="The backup assistant is temporarily busy. Please try again shortly.") from None
+        if 500 <= exc.code < 600:
+            raise HTTPException(status_code=503, detail="The backup assistant is temporarily unavailable. Please try again shortly.") from None
+        raise HTTPException(status_code=502, detail="The assistant could not respond right now.") from None
+    except (URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(status_code=503, detail="The backup assistant is temporarily unavailable. Please try again shortly.") from None
+
+    choices = result.get("choices", [])
+    reply = choices[0].get("message", {}).get("content", "").strip() if choices else ""
+    if not reply:
+        raise HTTPException(status_code=502, detail="The backup assistant returned an empty response.")
+    return reply[:4000]
+
+
+_ACTIVE_PROVIDER_TASKS: set[asyncio.Task[str]] = set()
+
+
+def _track_provider_task(task: asyncio.Task[str]) -> asyncio.Task[str]:
+    _ACTIVE_PROVIDER_TASKS.add(task)
+    task.add_done_callback(_ACTIVE_PROVIDER_TASKS.discard)
+    task.add_done_callback(lambda completed: completed.exception() if not completed.cancelled() else None)
+    return task
+
+
+async def _answer_with_fallback(messages: list[ChatMessage]) -> str:
+    gemini_configured = bool(os.getenv("GEMINI_API_KEY", "").strip())
+    groq_configured = bool(os.getenv("GROQ_API_KEY", "").strip())
+    if not gemini_configured and not groq_configured:
+        raise HTTPException(status_code=503, detail="The portfolio assistant is not configured yet.")
+    if not gemini_configured:
+        return await asyncio.to_thread(_groq_request, messages)
+    if not groq_configured:
+        return await asyncio.to_thread(_gemini_request, messages)
+
+    gemini_task = _track_provider_task(asyncio.create_task(asyncio.to_thread(_gemini_request, messages)))
+    try:
+        delay = float(os.getenv("AI_FALLBACK_DELAY_SECONDS", "2"))
+    except ValueError:
+        delay = 2.0
+    delay = min(max(delay, 0.25), 10.0)
+
+    done, _ = await asyncio.wait({gemini_task}, timeout=delay, return_when=asyncio.FIRST_COMPLETED)
+    if done:
+        try:
+            return gemini_task.result()
+        except Exception:
+            pass
+
+    groq_task = _track_provider_task(asyncio.create_task(asyncio.to_thread(_groq_request, messages)))
+    pending = {task for task in (gemini_task, groq_task) if not task.done()}
+    failures = []
+    for task in (gemini_task, groq_task):
+        if task.done():
+            try:
+                return task.result()
+            except Exception as exc:
+                failures.append(exc)
+
+    while pending:
+        completed, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+        for task in completed:
+            try:
+                return task.result()
+            except Exception as exc:
+                failures.append(exc)
+
+    raise HTTPException(status_code=503, detail="Both AI providers are temporarily unavailable. Please try again shortly.")
 
 
 @app.get("/health")
@@ -234,7 +335,7 @@ async def chat(payload: ChatRequest, request: FastAPIRequest) -> ChatResponse:
         raise HTTPException(status_code=422, detail="Conversation must start and end with a visitor message.")
     if any(left.role == right.role for left, right in zip(payload.messages, payload.messages[1:])):
         raise HTTPException(status_code=422, detail="Conversation messages must alternate visitor and assistant.")
-    reply = await asyncio.to_thread(_gemini_request, payload.messages)
+    reply = await _answer_with_fallback(payload.messages)
     return ChatResponse(reply=reply)
 
 
