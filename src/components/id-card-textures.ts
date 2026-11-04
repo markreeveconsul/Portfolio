@@ -175,6 +175,22 @@ function drawQRPanel(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: 
   ctx.drawImage(image, x + 4, y + 4, 48, 48);
 }
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const lines: string[] = [];
+  let line = "";
+  for (const word of text.split(/\s+/)) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && ctx.measureText(candidate).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 function drawFront(ctx: CanvasRenderingContext2D, displayFont: string, monoFont: string, photo: HTMLImageElement | null, qr: HTMLImageElement) {
   drawCardShell(ctx);
   drawSlot(ctx);
@@ -188,13 +204,17 @@ function drawFront(ctx: CanvasRenderingContext2D, displayFont: string, monoFont:
   ctx.fillText(idCardCopy.availability.toUpperCase(), 358, 64);
   const availabilityWidth = ctx.measureText(idCardCopy.availability.toUpperCase()).width;
   const marker = ctx.createConicGradient(0, 260, 60);
-  marker.addColorStop(0, idCardPalette.platinum);
-  marker.addColorStop(0.5, idCardPalette.ink);
-  marker.addColorStop(1, idCardPalette.dimPlatinum);
+  marker.addColorStop(0, "#A8E6F0");
+  marker.addColorStop(0.32, "#E9B8F0");
+  marker.addColorStop(0.62, "#FFE9B5");
+  marker.addColorStop(1, "#EEF1F5");
   ctx.beginPath();
   ctx.arc(358 - availabilityWidth - 15, 60, 4, 0, Math.PI * 2);
   ctx.fillStyle = marker;
+  ctx.shadowColor = "rgba(201,208,218,.5)";
+  ctx.shadowBlur = 8;
   ctx.fill();
+  ctx.shadowBlur = 0;
 
   drawGrayscalePhoto(ctx, photo, monoFont);
   drawNetworkMark(ctx);
@@ -254,9 +274,13 @@ function drawBack(ctx: CanvasRenderingContext2D, monoFont: string, archLogo: HTM
   ctx.fillText(idCardCopy.fullName, 22, 129);
 
   const rowsTop = 152;
-  const rowHeight = 30;
-  idCardCopy.backRows.forEach((row, index) => {
-    const y = rowsTop + index * rowHeight;
+  const rowLineHeight = 29;
+  let rowY = rowsTop;
+  idCardCopy.backRows.forEach((row) => {
+    ctx.font = `500 14px ${monoFont}`;
+    const valueLines = wrapText(ctx, row.value, 234);
+    const rowHeight = Math.max(30, valueLines.length * rowLineHeight);
+    const y = rowY;
     ctx.strokeStyle = idCardPalette.rule;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -267,10 +291,11 @@ function drawBack(ctx: CanvasRenderingContext2D, monoFont: string, archLogo: HTM
     ctx.fillStyle = idCardPalette.dimPlatinum;
     ctx.fillText(row.label, 22, y + 20);
     ctx.fillStyle = idCardPalette.ink;
-    ctx.fillText(row.value, 124, y + 20, 234);
+    valueLines.forEach((line, lineIndex) => ctx.fillText(line, 124, y + 20 + lineIndex * rowLineHeight));
+    rowY += rowHeight;
   });
 
-  const promptY = rowsTop + idCardCopy.backRows.length * rowHeight + 20;
+  const promptY = rowY + 20;
   ctx.font = `500 14px ${monoFont}`;
   ctx.fillStyle = idCardPalette.platinum;
   ctx.fillText(idCardCopy.terminalUser, 22, promptY);
