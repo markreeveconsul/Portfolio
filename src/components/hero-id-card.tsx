@@ -13,7 +13,7 @@ function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; r
   return <div className={`hero-card-stage css-id-stage${reducedMotion ? " reduced-motion" : ""}`} role="group" aria-label="Portfolio ID card">
     <button className={`css-flat-card${faceBack ? " is-back" : ""}`} type="button" aria-label={faceBack ? "Show the front of Mark’s card" : "Flip card to see the system profile"} onClick={() => setFaceBack((value) => !value)}>
       <span className="css-flat-card-inner">
-        <span className="css-flat-face css-flat-front">{frontImage ? <img src={frontImage} alt="Front of Mark Reeve Consul’s portfolio ID card" /> : <span className="css-flat-loading"><b>MARK<br />REEVE<br />CONSUL</b><small>IT student · Full stack dev</small></span>}</span>
+        <span className="css-flat-face css-flat-front">{frontImage ? <img src={frontImage} alt="Front of Mark Reeve Consul’s portfolio ID card" /> : <span className="css-flat-loading"><b>MARK<br />REEVE<br />CONSUL</b><small>IT student · Full stack dev</small></span>}<span className="css-irid-rule" aria-hidden="true" /></span>
         <span className="css-flat-face css-flat-back">{backImage ? <img src={backImage} alt="Back of Mark Reeve Consul’s portfolio ID card, showing his system profile" /> : <span className="css-flat-loading"><b>system profile</b><small>Mark Reeve Consul<br />Backend · Networking<br />Arch Linux (btw)</small></span>}</span>
       </span>
     </button>
