@@ -36,6 +36,12 @@ html.lenis{scroll-behavior:auto}
 @keyframes status-ping{0%{transform:scale(.4);opacity:.85}100%{transform:scale(1.9);opacity:0}}
 
 .hero-card-shell{min-width:0}
+/* Flat card: JS drives rotateY every frame, so a CSS transition would only add lag.
+   pan-y keeps vertical swipes scrolling the page while horizontal drags turn the card. */
+.css-flat-card.is-spinning{touch-action:pan-y;cursor:grab;-webkit-user-select:none;user-select:none}
+.css-flat-card.is-spinning:active{cursor:grabbing}
+.css-flat-card.is-spinning .css-flat-card-inner{transition:none;will-change:transform}
+.css-flat-card.is-spinning img{pointer-events:none;-webkit-user-drag:none}
 /* The WebGL card mounts after the intro; fade it in instead of popping. */
 .hero-card-canvas{animation:card-arrive 1.2s var(--ease-out) both}
 @keyframes card-arrive{from{opacity:0;transform:translateY(18px)}}
