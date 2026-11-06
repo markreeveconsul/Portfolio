@@ -7,6 +7,36 @@ export const idCardDimensions = {
 
 export const cardFacePixels = { width: 380, height: 590, scale: 4, textureWidth: 1520, textureHeight: 2360 } as const;
 
+// Rendering quality knobs for the WebGL card. Tune here instead of in the scene.
+export const idCardRendering = {
+  maxDpr: 2,
+  toneMappingExposure: 1.0,
+  environmentIntensity: 1.0,
+  geometry: { curveSegments: 16, bevelSegments: 4 },
+  surfaceNormalSize: 256,
+  // Card faces: artwork is emitted unchanged; lighting only adds a glossy coat on top.
+  face: {
+    roughness: 0.55,
+    specularIntensity: 0.35,
+    clearcoat: 0.45,
+    clearcoatRoughness: 0.28,
+    clearcoatNormalScale: 0.12,
+    envMapIntensity: 0.7,
+    normalRepeat: [3, 4.5] as [number, number],
+  },
+  // Card edge and bevel.
+  shell: {
+    roughness: 0.42,
+    metalness: 0.12,
+    clearcoat: 0.6,
+    clearcoatRoughness: 0.25,
+    normalScale: 0.2,
+    envMapIntensity: 1.0,
+    normalRepeat: 6,
+  },
+  foil: { roughness: 0.4, envMapIntensity: 1.2 },
+} as const;
+
 export const idCardPalette = {
   background: "#0B0C0E",
   card: "#121418",

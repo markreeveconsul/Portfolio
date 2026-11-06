@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
-import { idCardDimensions, idCardPalette } from "@/data/id-card-design";
-import type { CardFaceCanvases } from "@/components/id-card-textures";
+import { idCardDimensions, idCardPalette, idCardRendering } from "@/data/id-card-design";
+import { getCardSurfaceNormalCanvas, type CardFaceCanvases } from "@/components/id-card-textures";
 
 const CARD_WIDTH = idCardDimensions.width;
 const CARD_HEIGHT = idCardDimensions.height;
@@ -100,14 +101,36 @@ const ruleFragmentShader = `
   }
 `;
 const shadowFragmentShader = `
+  uniform float uOpacity;
+  uniform float uInner;
+  uniform float uOuter;
   varying vec2 vUv;
   void main() {
     vec2 point = (vUv - 0.5) * vec2(1.0, 1.12);
     float distanceFromCenter = length(point);
-    float softness = 1.0 - smoothstep(0.16, 0.52, distanceFromCenter);
-    gl_FragColor = vec4(0.0, 0.0, 0.0, softness * 0.2);
+    float softness = 1.0 - smoothstep(uInner, uOuter, distanceFromCenter);
+    // Squared falloff reads as a soft penumbra instead of a hard-edged disc.
+    gl_FragColor = vec4(0.0, 0.0, 0.0, softness * softness * uOpacity);
   }
 `;
+
+function createShadowMaterial(opacity: number, inner: number, outer: number) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    uniforms: { uOpacity: { value: opacity }, uInner: { value: inner }, uOuter: { value: outer } },
+    vertexShader: sheenVertexShader,
+    fragmentShader: shadowFragmentShader,
+  });
+}
+
+function createNormalTexture(canvas: HTMLCanvasElement, repeatX: number, repeatY: number, anisotropy: number) {
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(repeatX, repeatY);
+  texture.anisotropy = anisotropy;
+  return texture;
+}
 
 function createCardGeometry() {
   const halfWidth = CARD_WIDTH / 2;
@@ -126,21 +149,24 @@ function createCardGeometry() {
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: CARD_DEPTH - 0.02,
     bevelEnabled: true,
-    bevelSegments: 3,
+    bevelSegments: idCardRendering.geometry.bevelSegments,
     steps: 1,
     bevelSize: 0.01,
     bevelThickness: 0.01,
-    curveSegments: 8,
+    curveSegments: idCardRendering.geometry.curveSegments,
   });
   geometry.computeBoundingBox();
   if (geometry.boundingBox) geometry.translate(0, 0, -(geometry.boundingBox.min.z + geometry.boundingBox.max.z) / 2);
 
-  // ExtrudeGeometry emits the two cap faces first, followed by bevel and side
-  // triangles. Give both caps stable, full-card UVs so the canvas textures sit
-  // directly on the existing rounded card instead of on floating planes.
+  // ExtrudeGeometry emits the two cap faces first (group 0: back cap, then front
+  // cap), followed by bevel and side triangles. Give both caps stable, full-card
+  // UVs so the canvas textures sit directly on the rounded card. The cap vertex
+  // count depends on curveSegments, so read it from the generated lid group.
   const positions = geometry.getAttribute("position");
   const uvs = geometry.getAttribute("uv");
-  const capVertexCount = 204;
+  const lidGroup = geometry.groups.find((group) => group.materialIndex === 0);
+  if (!lidGroup || lidGroup.start !== 0 || lidGroup.count % 6 !== 0) throw new Error("Unexpected ID card geometry layout.");
+  const capVertexCount = lidGroup.count;
   for (let index = 0; index < capVertexCount; index += 1) {
     const x = positions.getX(index);
     const y = positions.getY(index);
@@ -185,19 +211,26 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     }
     return { front, back };
   }, [faces, gl]);
+  const surfaceNormals = useMemo(() => {
+    const canvas = getCardSurfaceNormalCanvas(idCardRendering.surfaceNormalSize);
+    const anisotropy = gl.capabilities.getMaxAnisotropy();
+    const [faceRepeatX, faceRepeatY] = idCardRendering.face.normalRepeat;
+    return {
+      face: createNormalTexture(canvas, faceRepeatX, faceRepeatY, anisotropy),
+      shell: createNormalTexture(canvas, idCardRendering.shell.normalRepeat, idCardRendering.shell.normalRepeat, anisotropy),
+    };
+  }, [gl]);
   const shadowGeometry = useMemo(() => new THREE.PlaneGeometry(CARD_WIDTH * MODEL_VISUAL_SCALE_X * CARD_PRESENTATION_SCALE * 1.35, CARD_HEIGHT * CARD_PRESENTATION_SCALE * 1.22), []);
-  const shadowMaterial = useMemo(() => new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    vertexShader: sheenVertexShader,
-    fragmentShader: shadowFragmentShader,
-  }), []);
+  // A tight contact shadow plus a wide, faint penumbra under it.
+  const shadowMaterial = useMemo(() => createShadowMaterial(0.2, 0.12, 0.5), []);
+  const penumbraMaterial = useMemo(() => createShadowMaterial(0.09, 0.05, 0.5), []);
   const foilGeometry = useMemo(() => new THREE.PlaneGeometry(0.035, CARD_HEIGHT * (498 / 590)), []);
   const ruleGeometry = useMemo(() => new THREE.PlaneGeometry(CARD_WIDTH * (56 / 380), CARD_HEIGHT * (3 / 590)), []);
   const foilMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
     color: idCardPalette.platinum,
     metalness: 0.9,
-    roughness: 0.56,
+    roughness: idCardRendering.foil.roughness,
+    envMapIntensity: idCardRendering.foil.envMapIntensity,
     iridescence: 1.0,
     iridescenceIOR: 1.3,
     iridescenceThicknessRange: [120, 460],
@@ -225,9 +258,43 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     vertexShader: sheenVertexShader,
     fragmentShader: sheenFragmentShader,
   }), []);
-  const frontFaceMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: textures.front, toneMapped: false, side: THREE.DoubleSide }), [textures.front]);
-  const backFaceMaterial = useMemo(() => new THREE.MeshBasicMaterial({ map: textures.back, toneMapped: false, side: THREE.DoubleSide }), [textures.back]);
-  const shellMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({ color: idCardPalette.card, roughness: 0.52, metalness: 0.12, clearcoat: 0.2, clearcoatRoughness: 0.52 }), []);
+  // Face artwork goes through the emissive channel with a black base color, so
+  // it shows exactly as authored (no tone mapping, no light tinting). The
+  // physical material then adds a glossy clearcoat with a fine grain on top,
+  // which is what makes the face catch moving highlights like real plastic.
+  const createFaceMaterial = (artwork: THREE.Texture) => {
+    const face = idCardRendering.face;
+    return new THREE.MeshPhysicalMaterial({
+      color: 0x000000,
+      emissive: 0xffffff,
+      emissiveMap: artwork,
+      roughness: face.roughness,
+      metalness: 0,
+      specularIntensity: face.specularIntensity,
+      clearcoat: face.clearcoat,
+      clearcoatRoughness: face.clearcoatRoughness,
+      clearcoatNormalMap: surfaceNormals.face,
+      clearcoatNormalScale: new THREE.Vector2(face.clearcoatNormalScale, face.clearcoatNormalScale),
+      envMapIntensity: face.envMapIntensity,
+      toneMapped: false,
+      side: THREE.DoubleSide,
+    });
+  };
+  const frontFaceMaterial = useMemo(() => createFaceMaterial(textures.front), [textures.front, surfaceNormals]);
+  const backFaceMaterial = useMemo(() => createFaceMaterial(textures.back), [textures.back, surfaceNormals]);
+  const shellMaterial = useMemo(() => {
+    const shell = idCardRendering.shell;
+    return new THREE.MeshPhysicalMaterial({
+      color: idCardPalette.card,
+      roughness: shell.roughness,
+      metalness: shell.metalness,
+      clearcoat: shell.clearcoat,
+      clearcoatRoughness: shell.clearcoatRoughness,
+      normalMap: surfaceNormals.shell,
+      normalScale: new THREE.Vector2(shell.normalScale, shell.normalScale),
+      envMapIntensity: shell.envMapIntensity,
+    });
+  }, [surfaceNormals]);
   const sheenSideMaterial = useMemo(() => new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }), []);
   const cardMaterials = useMemo(() => [frontFaceMaterial, backFaceMaterial, shellMaterial], [frontFaceMaterial, backFaceMaterial, shellMaterial]);
   const sheenMaterials = useMemo(() => [sheenMaterial, sheenMaterial, sheenSideMaterial], [sheenMaterial, sheenSideMaterial]);
@@ -239,6 +306,9 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     ruleGeometry.dispose();
     textures.front.dispose();
     textures.back.dispose();
+    surfaceNormals.face.dispose();
+    surfaceNormals.shell.dispose();
+    penumbraMaterial.dispose();
     foilMaterial.dispose();
     foilSpectrumMaterial.dispose();
     ruleMaterial.dispose();
@@ -248,7 +318,7 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     shellMaterial.dispose();
     sheenSideMaterial.dispose();
     shadowMaterial.dispose();
-  }, [cardGeometry, shadowGeometry, foilGeometry, ruleGeometry, textures, foilMaterial, foilSpectrumMaterial, ruleMaterial, sheenMaterial, frontFaceMaterial, backFaceMaterial, shellMaterial, sheenSideMaterial, shadowMaterial]);
+  }, [cardGeometry, shadowGeometry, foilGeometry, ruleGeometry, textures, surfaceNormals, penumbraMaterial, foilMaterial, foilSpectrumMaterial, ruleMaterial, sheenMaterial, frontFaceMaterial, backFaceMaterial, shellMaterial, sheenSideMaterial, shadowMaterial]);
 
   useEffect(() => {
     if (!faceBack && !paused) return;
@@ -306,6 +376,7 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
   }
 
   return <>
+    <mesh geometry={shadowGeometry} material={penumbraMaterial} position={[cardX, -0.14, -0.2]} scale={[1.35, 1.25, 1]} renderOrder={0} />
     <mesh geometry={shadowGeometry} material={shadowMaterial} position={[cardX, -0.08, -0.16]} renderOrder={0} />
     <group ref={card} position={[cardX, 0, 0]} scale={[MODEL_VISUAL_SCALE_X * CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE]} onPointerDown={startDrag} onClick={(event) => { if (event.delta < 6) onFlip(); }} onPointerOver={() => { if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { if (!drag.current.active) document.body.style.cursor = ""; }}>
     <mesh geometry={cardGeometry} material={cardMaterials} />
@@ -339,9 +410,22 @@ export function HeroIdCardScene({ faces }: { faces: CardFaceCanvases }) {
   const [faceBack, setFaceBack] = useState(false);
   const flip = () => setFaceBack((value) => !value);
   return <div className="hero-card-stage hero-card-canvas" role="group" aria-label="Floating 3D portfolio card">
-    <Canvas dpr={[1, 1.4]} camera={{ position: [0, 0.05, 8], fov: 34 }} gl={{ alpha: true, antialias: true }} onCreated={({ gl }) => { gl.setClearColor("#000000", 0); }}>
-      <ambientLight intensity={0.82} />
-      <directionalLight position={[2, 3, 5]} intensity={1.25} />
+    <Canvas dpr={[1, idCardRendering.maxDpr]} camera={{ position: [0, 0.05, 8], fov: 34 }} gl={{
+      alpha: true,
+      antialias: true,
+      toneMapping: THREE.ACESFilmicToneMapping,
+      toneMappingExposure: idCardRendering.toneMappingExposure,
+      outputColorSpace: THREE.SRGBColorSpace,
+    }} onCreated={({ gl }) => { gl.setClearColor("#000000", 0); }}>
+      {/* Studio softboxes rendered once into the environment map (no network HDR). */}
+      <Environment resolution={256} frames={1} environmentIntensity={idCardRendering.environmentIntensity}>
+        <Lightformer form="rect" intensity={2.4} color="#F4F2EC" position={[0, 3.2, 5]} scale={[6, 2.2]} />
+        <Lightformer form="rect" intensity={1.1} color="#C9D0DA" position={[-5, 0.5, 2]} scale={[2.2, 5]} />
+        <Lightformer form="rect" intensity={1.6} color="#E9DDF0" position={[5, -0.5, -3]} scale={[1.4, 6]} />
+        <Lightformer form="ring" intensity={0.8} color="#A8E6F0" position={[2, -3, 4]} scale={1.6} />
+      </Environment>
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[2, 3, 5]} intensity={1.1} />
       <directionalLight position={[-3, -1, -4]} intensity={0.35} color="#C9D0DA" />
       <CardRig paused={paused} fast={fast} faceBack={faceBack} faces={faces} onFlip={flip} />
     </Canvas>

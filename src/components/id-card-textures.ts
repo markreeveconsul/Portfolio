@@ -348,3 +348,67 @@ export function getIdCardFaceCanvases() {
   if (!cachedFaces) cachedFaces = createFaces();
   return cachedFaces;
 }
+
+let cachedSurfaceNormal: HTMLCanvasElement | null = null;
+
+// Tileable normal map for a fine matte-plastic grain. Built from wrapped value
+// noise so it repeats without seams; generated once, no binary asset needed.
+function createSurfaceNormalCanvas(size: number) {
+  const lattice = 32;
+  let seed = 0x5eed1;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 0xffffffff;
+  };
+  const grid = Array.from({ length: lattice * lattice }, random);
+  const wrap = (value: number, period: number) => ((value % period) + period) % period;
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  // Value noise that repeats every `period` lattice cells, so the texture tiles.
+  const noise = (x: number, y: number, period: number) => {
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const cell = (cx: number, cy: number) => grid[wrap(cy, period) * lattice + wrap(cx, period)];
+    const tx = smooth(x - x0);
+    const ty = smooth(y - y0);
+    const top = cell(x0, y0) + (cell(x0 + 1, y0) - cell(x0, y0)) * tx;
+    const bottom = cell(x0, y0 + 1) + (cell(x0 + 1, y0 + 1) - cell(x0, y0 + 1)) * tx;
+    return top + (bottom - top) * ty;
+  };
+
+  const coarse = lattice / 2;
+  const height = new Float32Array(size * size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const u = x / size;
+      const v = y / size;
+      height[y * size + x] = noise(u * coarse, v * coarse, coarse) * 0.35 + noise(u * lattice, v * lattice, lattice) * 0.65;
+    }
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Unable to create the ID card surface canvas.");
+  const image = ctx.createImageData(size, size);
+  const at = (x: number, y: number) => height[((y + size) % size) * size + ((x + size) % size)];
+  const strength = 2.2;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const dx = (at(x + 1, y) - at(x - 1, y)) * strength;
+      const dy = (at(x, y + 1) - at(x, y - 1)) * strength;
+      const length = Math.hypot(dx, dy, 1);
+      const index = (y * size + x) * 4;
+      image.data[index] = ((-dx / length) * 0.5 + 0.5) * 255;
+      image.data[index + 1] = ((dy / length) * 0.5 + 0.5) * 255;
+      image.data[index + 2] = ((1 / length) * 0.5 + 0.5) * 255;
+      image.data[index + 3] = 255;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+  return canvas;
+}
+
+export function getCardSurfaceNormalCanvas(size: number) {
+  if (!cachedSurfaceNormal) cachedSurfaceNormal = createSurfaceNormalCanvas(size);
+  return cachedSurfaceNormal;
+}
