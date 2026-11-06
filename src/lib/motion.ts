@@ -59,6 +59,25 @@ export function afterBoot(callback: () => void) {
   return () => window.removeEventListener(BOOT_DONE_EVENT, onDone);
 }
 
+/** Fired when the boot overlay starts sliding away, so the page can appear underneath it. */
+export const BOOT_REVEAL_EVENT = "portfolio:boot-reveal";
+
+/**
+ * Runs `callback` when the main page should start appearing: as the boot overlay
+ * begins its exit wipe (or immediately if the intro isn't playing). Use this for
+ * the hero entrance so the page is visible while the overlay slides away; use
+ * afterBoot for heavy work that should wait until the intro is fully gone.
+ */
+export function afterBootReveal(callback: () => void) {
+  if (!isBootPlaying() || document.documentElement.dataset.bootReveal) { callback(); return () => {}; }
+  let done = false;
+  const run = () => { if (done) return; done = true; cleanup(); callback(); };
+  const cleanup = () => { window.removeEventListener(BOOT_REVEAL_EVENT, run); window.removeEventListener(BOOT_DONE_EVENT, run); };
+  window.addEventListener(BOOT_REVEAL_EVENT, run);
+  window.addEventListener(BOOT_DONE_EVENT, run);
+  return cleanup;
+}
+
 /**
  * True once the boot intro is over, plus `delayMs`, plus an idle moment. Use it
  * to hold back heavy work (WebGL scenes, canvas loops) so it never competes

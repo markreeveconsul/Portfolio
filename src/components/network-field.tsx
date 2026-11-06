@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { afterBoot, motionQueries } from "@/lib/motion";
+import { afterBootReveal, motionQueries } from "@/lib/motion";
 
 type Node = { x: number; y: number; vx: number; vy: number; ox: number; oy: number; hub: boolean };
 type Packet = { from: number; to: number; t: number; speed: number };
@@ -218,7 +218,7 @@ export function NetworkField({ duringBoot = false, parallax = false, className =
     let cancelBootWait = () => {};
     const start = () => { booted = true; play(); canvas.classList.add("is-live"); };
     if (duringBoot) start();
-    else cancelBootWait = afterBoot(start);
+    else cancelBootWait = afterBootReveal(start);
 
     return () => {
       cancelBootWait();
