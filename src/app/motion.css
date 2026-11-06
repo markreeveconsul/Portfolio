@@ -139,6 +139,22 @@ html.lenis{scroll-behavior:auto}
 .process-row.is-scrubbed .process-step.is-active{color:var(--text)}
 .process-row.is-scrubbed .process-step.is-active b{color:var(--accent)}
 
+/* Phones: the steps become a vertical timeline. A faint track runs through a dot
+   per step; the iridescent rail fills down it as you scroll, lighting each dot.
+   Geometry: rows are 44px tall (14px padding + 16px line), the list has 8px
+   top/bottom padding, so the first and last dot centres sit 30px from the edges
+   and every dot centre is 20.5px from the left. */
+@media(max-width:680px){
+  .process-row{display:grid;grid-template-columns:1fr;gap:0;justify-content:initial;overflow:visible;padding:8px 18px 8px 46px}
+  .process-row::before{content:"";position:absolute;z-index:0;left:20px;top:30px;bottom:30px;width:1px;background:var(--line)}
+  .process-step{position:relative;display:flex;align-items:center;gap:12px;padding:14px 0;font-size:12px;line-height:16px;white-space:normal;border-bottom:1px solid var(--line)}
+  .process-step:last-child{border-bottom:0}
+  .process-step::before{content:"";position:absolute;z-index:1;left:-30px;top:50%;width:9px;height:9px;margin-top:-4.5px;border:1px solid var(--line-strong);border-radius:50%;background:var(--surface);transition:background-color .4s,border-color .4s,box-shadow .4s}
+  .process-step.is-active::before{border-color:var(--ice);background:var(--ice);box-shadow:0 0 12px rgba(168,230,240,.6)}
+  .process-rail{z-index:0;left:20px;top:30px;bottom:30px;width:1px;height:auto;transform:scaleY(var(--progress,1));transform-origin:50% 0}
+  .process-row.is-scrubbed .process-rail{transform:scaleY(0)}
+}
+
 /* ---------- Cursor ring (desktop) ---------- */
 .cursor-ring{position:fixed;left:0;top:0;z-index:200;display:grid;place-items:center;width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid rgba(236,234,228,.5);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s,width .45s var(--ease-out),height .45s var(--ease-out),margin .45s var(--ease-out),background-color .3s,border-color .3s}
 .cursor-ring.is-visible{opacity:1}

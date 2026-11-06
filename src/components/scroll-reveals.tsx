@@ -15,10 +15,41 @@ import { gsap, ScrollTrigger, SplitText, useGSAP, ease, motionQueries } from "@/
  *
  * Nothing is hidden by CSS: elements only get a "from" state once this runs,
  * so content stays visible without JavaScript or if an animation fails.
- * Reduced motion skips everything and leaves content in place.
+ * Reduced motion skips the reveals and leaves content in place.
  */
 export function ScrollReveals() {
   useGSAP(() => {
+    // Process steps: the rail fills and steps light up in step with the scroll
+    // position. It only moves when the visitor scrolls (like the navbar progress
+    // line), so it stays on with reduced motion too.
+    // Wide screens: a horizontal rail under the row of steps.
+    // Phones: the steps stack into a vertical timeline and the rail fills
+    // downward while the list passes through the screen, so it starts empty
+    // when the section arrives instead of already being full.
+    const processMedia = gsap.matchMedia();
+    processMedia.add({ phone: "(max-width: 680px)", wide: "(min-width: 681px)" }, (context) => {
+      const { phone } = context.conditions as { phone: boolean };
+      document.querySelectorAll<HTMLElement>("[data-process]").forEach((row) => {
+        const steps = Array.from(row.querySelectorAll<HTMLElement>("[data-process-step]"));
+        const rail = row.querySelector<HTMLElement>("[data-process-rail]");
+        row.classList.add("is-scrubbed");
+        const threshold = (index: number) => (phone ? index / Math.max(1, steps.length - 1) - 0.03 : index / steps.length + 0.02);
+        const light = (progress: number) => steps.forEach((step, index) => step.classList.toggle("is-active", progress >= threshold(index)));
+        const scrollTrigger = {
+          trigger: row,
+          start: phone ? "top 80%" : "top 88%",
+          end: phone ? "bottom 55%" : "top 38%",
+          scrub: 0.4,
+          onUpdate: (self: ScrollTrigger) => light(self.progress),
+          onRefresh: (self: ScrollTrigger) => light(self.progress),
+        };
+        if (!rail) { ScrollTrigger.create(scrollTrigger); return; }
+        if (phone) gsap.fromTo(rail, { scaleY: 0, scaleX: 1 }, { scaleY: 1, ease: "none", transformOrigin: "50% 0%", scrollTrigger });
+        else gsap.fromTo(rail, { scaleX: 0, scaleY: 1 }, { scaleX: 1, ease: "none", transformOrigin: "0% 50%", scrollTrigger });
+      });
+      return () => document.querySelectorAll("[data-process]").forEach((row) => row.classList.remove("is-scrubbed"));
+    });
+
     const mm = gsap.matchMedia();
     mm.add(motionQueries.motionOk, (context) => {
       const splits: SplitText[] = [];
@@ -53,22 +84,6 @@ export function ScrollReveals() {
         });
       });
 
-      document.querySelectorAll<HTMLElement>("[data-process]").forEach((row) => {
-        const steps = Array.from(row.querySelectorAll<HTMLElement>("[data-process-step]"));
-        const rail = row.querySelector<HTMLElement>("[data-process-rail]");
-        row.classList.add("is-scrubbed");
-        ScrollTrigger.create({
-          trigger: row,
-          start: "top 88%",
-          end: "top 38%",
-          scrub: true,
-          onUpdate: (self) => {
-            rail?.style.setProperty("--progress", self.progress.toFixed(4));
-            steps.forEach((step, index) => step.classList.toggle("is-active", self.progress >= index / steps.length + 0.02));
-          },
-        });
-      });
-
       // Headings split by rendered line, so wait for web fonts to settle line breaks.
       document.fonts.ready.then(() => context.add(() => {
         if (cancelled) return;
@@ -94,7 +109,7 @@ export function ScrollReveals() {
       };
     });
 
-    return () => mm.revert();
+    return () => { mm.revert(); processMedia.revert(); };
   });
 
   return null;
