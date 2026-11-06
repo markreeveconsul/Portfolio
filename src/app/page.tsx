@@ -44,7 +44,7 @@ export default function HomePage() {
           <HeroHeadline lineOne={profile.roleLineOne} lineTwo={profile.roleLineTwo} />
           <p className="cursor-line" data-hero-reveal="">2ND-YEAR IT STUDENT&nbsp; · &nbsp;DEVELOPER</p>
           <p className="hero-description" data-hero-reveal="">{profile.bio}</p>
-          <div className="tech-chips" aria-label="Selected technologies" data-hero-reveal=""><span className="chip">Java</span><span className="chip">JavaFX</span><span className="chip">AI projects</span><span className="chip">Web apps</span></div>
+          <div className="tech-chips" aria-label="Selected technologies" data-hero-reveal=""><span className="chip">Research projects</span><span className="chip">Capstone projects</span><span className="chip">AI projects</span><span className="chip">Web apps</span></div>
           <div className="hero-actions" data-hero-reveal=""><a className="button button-primary" href="#portfolio" data-magnetic="">See my projects <span aria-hidden="true">↘</span></a><a className="button button-outline" href="#contact" data-magnetic="">Hire me <span aria-hidden="true">↗</span></a></div>
         </div>
         <div className="hero-card-shell"><HeroIdCard /></div>
@@ -56,7 +56,7 @@ export default function HomePage() {
       <section className="section" id="about">
         <div className="about-grid">
           <div className="about-copy"><p className="section-index" data-reveal="fade">02 / About</p><h2 data-reveal="lines">{profile.name}</h2><p data-reveal="fade">{profile.bio}</p>{profile.quote && <blockquote className="about-quote" data-reveal="fade">“{profile.quote}”</blockquote>}<div className="about-buttons" data-reveal="fade"><a className="button button-outline" href="#portfolio" data-magnetic="">Explore my work <span aria-hidden="true">↘</span></a></div></div>
-          <div className="profile-side" data-reveal="stagger"><div className="portrait-ring"><Image src="/images/profile-placeholder.svg" alt="Profile portrait placeholder" width={640} height={640} /></div><div className="stats">
+          <div className="profile-side" data-reveal="stagger"><div className="portrait-ring"><Image src="/images/about%20pic.jpg" alt="Portrait of Mark Reeve Consul" width={640} height={640} /></div><div className="stats">
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number" data-count={projects.length}>{statValue(projects.length)}</span><span className="stat-label">Projects</span></PortfolioJump>
             <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number" data-count={certificates.length}>{statValue(certificates.length)}</span><span className="stat-label">Certificates</span></PortfolioJump>
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number" data-count={completedProjects}>{statValue(completedProjects)}</span><span className="stat-label">Completed works</span></PortfolioJump>
@@ -87,7 +87,7 @@ export default function HomePage() {
         <div className="section-heading"><p className="section-index" data-reveal="fade">06 / Contact</p><h2 data-reveal="lines">Let’s build something<br />worth sharing.</h2><p data-reveal="fade">Have a project, opportunity, or collaboration in mind? Send a note.</p></div>
         <div className="contact-grid" data-reveal="stagger">
           <section className="contact-panel glass-card" id="contact-form" data-spotlight=""><h3>Send a message</h3><p>Send a note about a project, internship, or collaboration.</p><ContactForm configured={Boolean(process.env.FORMSPREE_ENDPOINT?.startsWith("https://formspree.io/f/"))} /></section>
-          <section className="contact-panel glass-card" data-spotlight=""><h3>Connect with me</h3><p>Public contact links will be added here.</p><div className="social-list">
+          <section className="contact-panel glass-card" data-spotlight=""><h3>Connect with me</h3><p>Email me directly, or browse what I’m building on GitHub.</p><div className="social-list">
             {profile.github.startsWith("https://") ? <a className="social-link" href={profile.github} target="_blank" rel="noreferrer"><span>GitHub</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>GitHub</span><span>Link coming soon</span></div>}
             {profile.linkedin.startsWith("https://") ? <a className="social-link" href={profile.linkedin} target="_blank" rel="noreferrer"><span>LinkedIn</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>LinkedIn</span><span>Link coming soon</span></div>}
             {profile.email.includes("@") ? <a className="social-link" href={`mailto:${profile.email}`}><span>Email</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>Email</span><span>Address coming soon</span></div>}
