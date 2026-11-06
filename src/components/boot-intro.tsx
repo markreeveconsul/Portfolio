@@ -44,7 +44,30 @@ export function BootIntro() {
     const canvas = canvasRef.current;
     const html = document.documentElement;
     if (!root || !canvas || html.dataset.boot !== "play") return;
+    // Any failure while setting up must end the intro, never leave a dark screen.
+    try {
+      return runBoot(root, canvas, html);
+    } catch (error) {
+      console.error("[boot] intro failed, skipping it:", error);
+      endBootNow(root, html);
+    }
+  }, []);
 
+  return <BootMarkup rootRef={rootRef} canvasRef={canvasRef} />;
+}
+
+/** Immediately hands the page back (used when the intro can't run). */
+function endBootNow(root: HTMLElement, html: HTMLElement) {
+  root.style.display = "none";
+  html.style.overflow = "";
+  html.dataset.boot = "done";
+  try { sessionStorage.setItem(BOOT_STORAGE_KEY, "1"); } catch { /* private mode */ }
+  setScrollLock(false);
+  window.dispatchEvent(new Event(BOOT_DONE_EVENT));
+}
+
+function runBoot(root: HTMLDivElement, canvas: HTMLCanvasElement, html: HTMLElement): () => void {
+  {
     const started = performance.now();
     const deadline = Date.now() + MAX_WAIT_MS;
     const abort = new AbortController();
@@ -54,6 +77,7 @@ export function BootIntro() {
     html.style.overflow = "hidden";
     setScrollLock(true);
     root.classList.add("is-live"); // CSS keeps the content hidden until the animation owns it
+    console.info("[boot] intro started");
 
     const finish = () => {
       if (finished) return;
@@ -212,6 +236,17 @@ export function BootIntro() {
     // While waiting on slow tasks, the wordmark breathes instead of freezing.
     const idle = gsap.to(root.querySelector(".boot-center"), { scale: 1.012, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: -1, paused: true });
 
+    // Heartbeat (timer-based, independent of animation frames): if the timeline
+    // hasn't moved after 1.2s, frames aren't arriving and the visitor would be
+    // staring at a dark screen. Give them the site instead.
+    const heartbeat = window.setTimeout(() => {
+      if (exiting || finished || intro.time() > 0.2) return;
+      console.warn("[boot] animation frames aren't arriving; skipping the intro");
+      finished = true;
+      intro.kill();
+      endBootNow(root, html);
+    }, 1200);
+
     const exit = () => {
       if (exiting) return;
       exiting = true;
@@ -257,6 +292,7 @@ export function BootIntro() {
       abort.abort();
       window.clearTimeout(watchdog);
       window.clearTimeout(skipTimer);
+      window.clearTimeout(heartbeat);
       events.forEach((type) => window.removeEventListener(type, skip));
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(frame);
@@ -267,8 +303,10 @@ export function BootIntro() {
       root.classList.remove("is-live");
       if (!finished) { html.style.overflow = previousOverflow; setScrollLock(false); }
     };
-  }, []);
+  }
+}
 
+function BootMarkup({ rootRef, canvasRef }: { rootRef: React.RefObject<HTMLDivElement | null>; canvasRef: React.RefObject<HTMLCanvasElement | null> }) {
   return <div ref={rootRef} className="boot" aria-hidden="true">
     <div className="boot-grid" />
     <canvas ref={canvasRef} className="boot-canvas" />
