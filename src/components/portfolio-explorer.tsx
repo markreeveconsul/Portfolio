@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, ViewTransition, type KeyboardEvent } from "react";
 import { certificates } from "@/data/certificates";
 import { projects } from "@/data/projects";
 import { techStack } from "@/data/techstack";
+import { gsap, ease, matches, motionQueries, setScrollLock } from "@/lib/motion";
 
 type TabKey = "projects" | "certificates" | "tech";
 const tabs: { id: TabKey; label: string }[] = [
@@ -35,6 +36,7 @@ export function PortfolioExplorer() {
     closeRef.current?.focus();
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    setScrollLock(true);
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") closeLightbox();
       if (event.key === "ArrowRight") moveLightbox(1);
@@ -50,8 +52,18 @@ export function PortfolioExplorer() {
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => { window.removeEventListener("keydown", onKeyDown); document.body.style.overflow = previousOverflow; };
+    return () => { window.removeEventListener("keydown", onKeyDown); document.body.style.overflow = previousOverflow; setScrollLock(false); };
   }, [certificateIndex, closeLightbox, moveLightbox]);
+
+  // Tab switches: the incoming panel's items rise in instead of snapping.
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    if (!matches(motionQueries.motionOk)) return;
+    const items = document.querySelectorAll(`#panel-${active} [data-panel-item]`);
+    const tween = gsap.fromTo(items, { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: ease.out, stagger: 0.06, clearProps: "opacity,visibility" });
+    return () => { tween.kill(); };
+  }, [active]);
 
   useEffect(() => {
     const selectTab = (event: Event) => {
@@ -84,15 +96,17 @@ export function PortfolioExplorer() {
     </div>
 
     <div id="panel-projects" role="tabpanel" aria-labelledby="tab-projects" tabIndex={0} hidden={active !== "projects"}>
-      {active === "projects" && <div className="project-grid">
-        {projects.map((project) => <article className={`project-card glass-card${project.featured ? " project-card-featured" : ""}`} key={project.slug}>
+      {active === "projects" && <div className="project-grid" data-reveal="stagger">
+        {projects.map((project) => <article className={`project-card glass-card${project.featured ? " project-card-featured" : ""}`} key={project.slug} data-panel-item="" data-tilt="" data-spotlight="" data-cursor="view">
           <Link className="project-image" href={`/portfolio/${project.slug}`} aria-label={`View details for ${project.name}`}>
-            <Image src={project.image} alt={project.imageAlt} fill sizes="(max-width: 680px) 100vw, (max-width: 900px) 50vw, 33vw" />
+            <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
+              <Image src={project.image} alt={project.imageAlt} fill sizes={project.featured ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 40vw"} />
+            </ViewTransition>
             <span className="status-badge">{project.status}</span>
           </Link>
           <div className="project-content">
             <span className="project-meta">{project.aiIntegrated ? "AI INTEGRATION" : project.eyebrow}</span>
-            <h3>{project.name}</h3>
+            <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none"><h3>{project.name}</h3></ViewTransition>
             <p>{project.summary}</p>
             <div className="tag-list">{project.technologies.slice(0, 3).map((tech) => <span className="tag" key={tech}>{tech}</span>)}</div>
             <Link className="details-link" href={`/portfolio/${project.slug}`}>Details <span aria-hidden="true">↗</span></Link>
@@ -102,11 +116,11 @@ export function PortfolioExplorer() {
     </div>
 
     <div id="panel-certificates" role="tabpanel" aria-labelledby="tab-certificates" tabIndex={0} hidden={active !== "certificates"}>
-      {active === "certificates" && (certificates.length > 0 ? <div className="certificate-grid">{certificates.map((certificate, index) => <button className="certificate-card" key={`${certificate.title}-${index}`} type="button" onClick={(event) => { certificateTriggerRef.current = event.currentTarget; setCertificateIndex(index); }} aria-label={`Open certificate: ${certificate.title}`}><Image src={certificate.image} alt={certificate.imageAlt} width={640} height={420} /><span>{certificate.title} · {certificate.issuer}</span></button>)}</div> : <div className="empty-state glass-card"><strong>Certificates will go here.</strong>Certificate details will appear here when they are ready to share.</div>)}
+      {active === "certificates" && (certificates.length > 0 ? <div className="certificate-grid">{certificates.map((certificate, index) => <button className="certificate-card" key={`${certificate.title}-${index}`} type="button" data-panel-item="" data-spotlight="" onClick={(event) => { certificateTriggerRef.current = event.currentTarget; setCertificateIndex(index); }} aria-label={`Open certificate: ${certificate.title}`}><Image src={certificate.image} alt={certificate.imageAlt} width={640} height={420} /><span>{certificate.title} · {certificate.issuer}</span></button>)}</div> : <div className="empty-state glass-card" data-panel-item=""><strong>Certificates will go here.</strong>Certificate details will appear here when they are ready to share.</div>)}
     </div>
 
     <div id="panel-tech" role="tabpanel" aria-labelledby="tab-tech" tabIndex={0} hidden={active !== "tech"}>
-      {active === "tech" && <div className="tech-groups">{techStack.map((group) => <section className="tech-group glass-card" key={group.name}><h3>{group.name}</h3><div className="tech-group-items">{group.items.map((item) => <span className="tech-item" key={item}>{item}</span>)}</div></section>)}</div>}
+      {active === "tech" && <div className="tech-groups">{techStack.map((group, groupIndex) => <section className="tech-group glass-card" key={group.name} data-panel-item="" data-spotlight=""><h3><span>{String(groupIndex + 1).padStart(2, "0")}</span>{group.name}</h3><div className="tech-group-items">{group.items.map((item) => <span className="tech-item" key={item}>{item}</span>)}</div></section>)}</div>}
     </div>
 
     {certificateIndex !== null && certificates[certificateIndex] && <div className="lightbox" onMouseDown={(event) => { if (event.target === event.currentTarget) closeLightbox(); }}>
