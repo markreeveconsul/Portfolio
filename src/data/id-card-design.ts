@@ -5,6 +5,31 @@ export const idCardDimensions = {
   cornerRadius: 0.14,
 } as const;
 
+/** Camera and placement of the WebGL card, shared with the loading placeholder so both line up exactly. */
+export const idCardStage = { cameraY: 0.05, cameraZ: 8, fov: 34, presentationScale: 0.82, maxX: 2, edgeGap: 0.35 } as const;
+
+/**
+ * Where the WebGL card's front face lands on screen, for a canvas of
+ * `width` × `height` CSS px (the canvas spans the viewport width and the hero height).
+ * Mirrors the maths in floating-id-card-scene.tsx.
+ */
+export function idCardScreenRect(width: number, height: number) {
+  const visibleHeight = 2 * idCardStage.cameraZ * Math.tan(((idCardStage.fov / 2) * Math.PI) / 180);
+  const visibleWidth = visibleHeight * (width / height);
+  const visualScaleX = (idCardDimensions.height * (380 / 590)) / idCardDimensions.width;
+  const halfWidth = (idCardDimensions.width * visualScaleX * idCardStage.presentationScale) / 2;
+  const cardX = Math.max(0, Math.min(idCardStage.maxX, visibleWidth / 2 - halfWidth - idCardStage.edgeGap));
+  const pxPerUnit = height / visibleHeight;
+  const cardHeight = idCardDimensions.height * idCardStage.presentationScale * pxPerUnit;
+  const cardWidth = halfWidth * 2 * pxPerUnit;
+  return {
+    centerX: width / 2 + cardX * pxPerUnit,
+    centerY: height / 2 + idCardStage.cameraY * pxPerUnit,
+    width: cardWidth,
+    height: cardHeight,
+  };
+}
+
 export const cardFacePixels = { width: 380, height: 590, scale: 4, textureWidth: 1520, textureHeight: 2360 } as const;
 
 // Rendering quality knobs for the WebGL card. Tune here instead of in the scene.

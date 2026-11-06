@@ -5,6 +5,7 @@ import { Component, useEffect, useRef, useState, type ErrorInfo, type ReactNode 
 import { getIdCardFaceCanvases, type CardFaceCanvases } from "@/components/id-card-textures";
 import { idCardCopy } from "@/data/id-card-design";
 import { afterBoot, useAfterBoot } from "@/lib/motion";
+import { CardMaterialize } from "@/components/card-materialize";
 
 /** The WebGL card mounts this long after the boot ends, once the hero headline and copy have started animating. */
 const SCENE_DELAY_MS = 900;
@@ -134,17 +135,18 @@ function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; r
       .catch(() => { /* keep the text fallback */ });
     return () => { active = false; };
   }, [faces]);
-  const frontImage = images?.front;
-  const backImage = images?.back;
+  const ready = Boolean(images);
 
   return <div className={`hero-card-stage css-id-stage${reducedMotion ? " reduced-motion" : ""}`} role="group" aria-label="Portfolio ID card">
-    <button ref={buttonRef} className="css-flat-card is-spinning" type="button" aria-label={faceBack ? "Show the front of Mark’s card" : "Flip card to see the system profile"} onClick={flip}>
+    {/* The button stays mounted (the spin hook needs it); it's hidden until the card images are ready. */}
+    {!ready && <CardMaterialize />}
+    <button ref={buttonRef} className={`css-flat-card is-spinning${ready ? " is-ready" : " is-waiting"}`} type="button" aria-label={faceBack ? "Show the front of Mark’s card" : "Flip card to see the system profile"} onClick={flip} disabled={!ready}>
       <span ref={innerRef} className="css-flat-card-inner">
-        <span className="css-flat-face css-flat-front">{frontImage ? <img src={frontImage} alt="Front of Mark Reeve Consul’s portfolio ID card" /> : <span className="css-flat-loading"><b>MARK<br />REEVE<br />CONSUL</b><small>IT student · Full stack dev</small></span>}<span className="css-irid-rule" aria-hidden="true" /></span>
-        <span className="css-flat-face css-flat-back">{backImage ? <img src={backImage} alt="Back of Mark Reeve Consul’s portfolio ID card, showing his system profile" /> : <span className="css-flat-loading"><b>system profile</b><small>Mark Reeve Consul<br />Backend · Networking<br />Arch Linux (btw)</small></span>}</span>
+        <span className="css-flat-face css-flat-front">{images && <img src={images.front} alt="Front of Mark Reeve Consul’s portfolio ID card" />}<span className="css-irid-rule" aria-hidden="true" /></span>
+        <span className="css-flat-face css-flat-back">{images && <img src={images.back} alt="Back of Mark Reeve Consul’s portfolio ID card, showing his system profile" />}</span>
       </span>
     </button>
-    <p className="css-flat-hint">{idCardCopy.interactionHint}</p>
+    <p className={`css-flat-hint${ready ? "" : " is-waiting"}`}>{idCardCopy.interactionHint}</p>
   </div>;
 }
 
@@ -170,9 +172,17 @@ class SceneErrorBoundary extends Component<{ children: ReactNode; fallback: Reac
 export function HeroIdCard() {
   const [faces, setFaces] = useState<CardFaceCanvases | null>(null);
   const [textureError, setTextureError] = useState(false);
-  const [fallbackMode, setFallbackMode] = useState(true);
+  // "pending" until the first client effect decides between the flat card and WebGL.
+  const [mode, setMode] = useState<"pending" | "css" | "webgl">("pending");
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Scene mounts only once the textures exist and the intro + hero entrance have had the main thread.
   const sceneReady = useAfterBoot(SCENE_DELAY_MS);
+  const [sceneDrawn, setSceneDrawn] = useState(false);
+  const [placeholderGone, setPlaceholderGone] = useState(false);
+  const onSceneReady = () => {
+    setSceneDrawn(true);
+    window.setTimeout(() => setPlaceholderGone(true), 900); // after the crossfade
+  };
 
   useEffect(() => {
     let active = true;
@@ -185,7 +195,7 @@ export function HeroIdCard() {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => {
       setReducedMotion(motion.matches);
-      setFallbackMode(mobile.matches || motion.matches || !canRenderWebGL());
+      setMode(mobile.matches || motion.matches || !canRenderWebGL() ? "css" : "webgl");
     };
     update();
     mobile.addEventListener("change", update);
@@ -193,10 +203,17 @@ export function HeroIdCard() {
     return () => { mobile.removeEventListener("change", update); motion.removeEventListener("change", update); };
   }, []);
 
-  if (!faces) return <CssIdCard faces={null} reducedMotion={reducedMotion} />;
-  const cssFallback = <CssIdCard faces={faces} reducedMotion={reducedMotion} />;
-  if (fallbackMode || textureError) return cssFallback;
-  // Hold the WebGL scene (shader compile, environment map) until the intro and hero entrance have the main thread.
-  if (!sceneReady) return <div className="hero-card-stage hero-card-pending" aria-hidden="true" />;
-  return <SceneErrorBoundary fallback={cssFallback}><InteractiveScene faces={faces} /></SceneErrorBoundary>;
+  // Undecided yet (server render and first client render): reserve the space, show nothing.
+  if (mode === "pending") return <div className="hero-card-stage css-id-stage" aria-hidden="true" />;
+
+  const cssCard = <CssIdCard faces={faces} reducedMotion={reducedMotion} />;
+  if (mode === "css" || textureError) return cssCard;
+
+  // WebGL: the materializing wireframe sits exactly where the card will appear, and
+  // crossfades out once the scene has drawn its first frame. The scene itself waits
+  // for the boot intro and hero entrance (shader compile is heavy).
+  return <>
+    {!placeholderGone && <CardMaterialize floating leaving={sceneDrawn} />}
+    {faces && sceneReady && <SceneErrorBoundary fallback={cssCard}><InteractiveScene faces={faces} onReady={onSceneReady} /></SceneErrorBoundary>}
+  </>;
 }

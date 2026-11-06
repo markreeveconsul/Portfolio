@@ -417,7 +417,18 @@ function HoldToBoost({ fast, onChange }: { fast: boolean; onChange: (value: bool
   return <button className="id-control id-control-boost" type="button" aria-pressed={fast} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); onChange(true); }} onPointerUp={() => onChange(false)} onPointerCancel={() => onChange(false)} onPointerLeave={() => onChange(false)} onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") onChange(true); }} onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") onChange(false); }} onBlur={() => onChange(false)} onContextMenu={(event) => event.preventDefault()}>Hold to speed up</button>;
 }
 
-export function HeroIdCardScene({ faces }: { faces: CardFaceCanvases }) {
+/** Calls `onReady` once, after the first frame has actually been drawn (shaders compiled, textures uploaded). */
+function FirstFrame({ onReady }: { onReady?: () => void }) {
+  const done = useRef(false);
+  useFrame(() => {
+    if (done.current) return;
+    done.current = true;
+    requestAnimationFrame(() => onReady?.());
+  });
+  return null;
+}
+
+export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; onReady?: () => void }) {
   const [paused, setPaused] = useState(false);
   const [fast, setFast] = useState(false);
   const [faceBack, setFaceBack] = useState(false);
@@ -441,6 +452,7 @@ export function HeroIdCardScene({ faces }: { faces: CardFaceCanvases }) {
       <directionalLight position={[2, 3, 5]} intensity={1.1} />
       <directionalLight position={[-3, -1, -4]} intensity={0.35} color="#C9D0DA" />
       <CardRig paused={paused} fast={fast} faceBack={faceBack} faces={faces} onFlip={flip} />
+      <FirstFrame onReady={onReady} />
     </Canvas>
     <div className="id-control-dock" role="group" aria-label="ID card controls">
       <button className="id-control" type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>{paused ? "Resume spin" : "Pause to read"}</button>
