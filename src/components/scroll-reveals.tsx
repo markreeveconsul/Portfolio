@@ -91,7 +91,6 @@ export function ScrollReveals() {
       return () => {
         cancelled = true;
         splits.forEach((split) => split.revert());
-        document.querySelectorAll("[data-process]").forEach((row) => row.classList.remove("is-scrubbed"));
       };
     });
 

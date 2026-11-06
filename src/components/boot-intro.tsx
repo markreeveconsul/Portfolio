@@ -239,9 +239,16 @@ export function BootIntro() {
     Promise.race([Promise.all([minimum, allTasks]), cap]).then(() => { if (!abort.signal.aborted) exit(); });
     window.setTimeout(() => { if (!exiting && !abort.signal.aborted) idle.play(); }, MIN_INTRO_MS);
 
-    const skip = () => exit();
+    // Skip: play the exit, but hand control back within ~1.6s no matter what the frame rate is.
+    let skipTimer = 0;
+    const skip = () => {
+      exit();
+      if (!skipTimer) skipTimer = window.setTimeout(finish, 1600);
+    };
     const events = ["keydown", "pointerdown", "wheel", "touchstart"] as const;
     events.forEach((type) => window.addEventListener(type, skip, { passive: true, once: true }));
+    // A skip that happened before this script loaded (recorded by the <head> script).
+    if (html.dataset.bootSkip) skip();
     const watchdog = window.setTimeout(() => finish(), MAX_WAIT_MS + 2500);
 
     // Undo side effects without marking the intro as seen, so React's dev-mode
@@ -249,6 +256,7 @@ export function BootIntro() {
     return () => {
       abort.abort();
       window.clearTimeout(watchdog);
+      window.clearTimeout(skipTimer);
       events.forEach((type) => window.removeEventListener(type, skip));
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(frame);

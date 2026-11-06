@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motionQueries } from "@/lib/motion";
+import { afterBoot, motionQueries } from "@/lib/motion";
 
 type Node = { x: number; y: number; vx: number; vy: number; ox: number; oy: number; hub: boolean };
 type Packet = { from: number; to: number; t: number; speed: number };
@@ -177,8 +177,10 @@ export function NetworkField() {
       frame = requestAnimationFrame(loop);
     }
 
+    // Hidden behind the boot overlay anyway, so don't spend frames until it's gone.
+    let booted = false;
     function play() {
-      if (!motionOk || frame || !visible || document.hidden) return;
+      if (!motionOk || !booted || frame || !visible || document.hidden) return;
       frame = requestAnimationFrame(loop);
     }
 
@@ -201,9 +203,10 @@ export function NetworkField() {
       document.documentElement.addEventListener("pointerleave", onPointerLeave);
     }
     resize();
-    play();
+    const cancelBootWait = afterBoot(() => { booted = true; play(); });
 
     return () => {
+      cancelBootWait();
       cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       intersection.disconnect();
