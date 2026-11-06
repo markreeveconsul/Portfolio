@@ -1,0 +1,184 @@
+/* Motion & visual layer: smooth scroll, hero choreography, reveals, pointer
+   effects, and view transitions. Loaded after globals.css and visual-polish.css.
+   Tokens come from :root in globals.css. */
+
+/* ---------- Smooth scroll (Lenis) ---------- */
+html.lenis,html.lenis body{height:auto}
+html.lenis{scroll-behavior:auto}
+.lenis:not(.lenis-autoToggle).lenis-stopped{overflow:clip}
+.lenis [data-lenis-prevent]{overscroll-behavior:contain}
+.lenis.lenis-smooth iframe{pointer-events:none}
+
+/* ---------- Film grain (static, so it never competes for attention) ---------- */
+.grain{position:fixed;inset:0;z-index:95;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px 180px}
+
+/* ---------- Hero ---------- */
+/* Hero copy waits for its entrance animation, but only when scripts run and motion is allowed.
+   A failsafe reveals it anyway if JavaScript is slow or fails. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference){
+  [data-hero-reveal]:not([data-ready]){opacity:0;animation:hero-failsafe 1ms 2.6s forwards}
+}
+@keyframes hero-failsafe{to{opacity:1}}
+
+.hero-motion{position:absolute;top:0;bottom:0;left:calc((100% - 100vw)/2);width:100vw;z-index:0;pointer-events:none}
+.network-field{display:block;width:100%;height:100%;-webkit-mask-image:radial-gradient(ellipse 72% 78% at 62% 42%,#000 30%,transparent 78%);mask-image:radial-gradient(ellipse 72% 78% at 62% 42%,#000 30%,transparent 78%)}
+
+.hero .hero-line{display:block;color:var(--text)}
+.hero .hero-line-accent{color:transparent;background:linear-gradient(100deg,#8f909c 0%,#8f909c 36%,#C9D0DA 44%,#A8E6F0 51%,#E9B8F0 57%,#FFE9B5 63%,#8f909c 72%,#8f909c 100%);background-size:260% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text}
+.hero-headline.is-decoding .hero-line{white-space:nowrap}
+.hero-headline.is-decoded .hero-line-accent{animation:irid-sweep 2.4s var(--ease-out) .05s both}
+@keyframes irid-sweep{from{background-position:100% 0}to{background-position:0 0}}
+
+.availability i{position:relative}
+.availability i::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);opacity:0;animation:status-ping 2.6s var(--ease-out) infinite}
+@keyframes status-ping{0%{transform:scale(.4);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+
+.hero-card-shell{min-width:0}
+.hero-scroll{justify-content:flex-start;align-items:center;gap:12px}
+.scroll-arrow{display:inline-block;animation:arrow-bob 1.9s var(--ease-in-out) infinite}
+@keyframes arrow-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
+
+/* ---------- Marquee strip ---------- */
+.marquee{position:relative;width:100vw;margin-left:calc((100% - 100vw)/2);overflow:hidden;padding:clamp(18px,2.4vw,30px) 0;border-block:1px solid var(--line);-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.marquee-track{display:flex;width:max-content;animation:marquee 46s linear infinite}
+.marquee:hover .marquee-track{animation-play-state:paused}
+.marquee-item{display:inline-flex;align-items:center;gap:clamp(18px,2.4vw,34px);padding-right:clamp(18px,2.4vw,34px);font:600 clamp(24px,3.4vw,46px)/1.1 var(--display);letter-spacing:-.035em;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(236,234,228,.3)}
+.marquee-item.is-solid{color:var(--ink);-webkit-text-stroke:0}
+.marquee-item i{font-style:normal;font-size:.42em;color:var(--platinum);-webkit-text-stroke:0;opacity:.7}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ---------- Navbar ---------- */
+.navbar-wrap{view-transition-name:site-header}
+.navbar{position:relative;transition:width .6s var(--ease-out),background-color .4s,border-color .4s,box-shadow .4s}
+.navbar.is-compact{width:min(900px,calc(100% - 40px));background:rgba(13,14,19,.86);border-color:rgba(255,255,255,.15);box-shadow:0 16px 50px rgba(0,0,0,.45)}
+.nav-progress{position:absolute;left:24px;right:24px;bottom:-1px;height:1px;background:var(--irid);transform:scaleX(0);transform-origin:left center;pointer-events:none}
+.nav-links{gap:4px}
+.nav-link{padding:8px 13px;border-radius:99px}
+.nav-link.active:after{display:none}
+.nav-indicator{position:absolute;inset:0;border-radius:99px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.1)}
+.nav-link-label{position:relative}
+.menu-icon{position:relative;display:block;width:18px;height:12px}
+.menu-icon i{position:absolute;left:0;right:0;height:1.5px;border-radius:2px;background:currentColor;transition:transform .4s var(--ease-out),top .4s var(--ease-out)}
+.menu-icon i:first-child{top:2px}.menu-icon i:last-child{top:9px}
+.menu-icon.is-open i:first-child{top:5.5px;transform:rotate(45deg)}
+.menu-icon.is-open i:last-child{top:5.5px;transform:rotate(-45deg)}
+@media(max-width:680px){
+  .navbar.is-compact{width:calc(100% - 20px)}
+  .nav-links{display:flex;visibility:hidden;opacity:0;transform:translateY(-8px) scale(.98);transform-origin:top center;transition:opacity .25s var(--ease-out),transform .4s var(--ease-out),visibility 0s linear .4s}
+  .nav-links.open{visibility:visible;opacity:1;transform:none;transition:opacity .25s var(--ease-out),transform .4s var(--ease-out),visibility 0s}
+  .nav-link{padding:12px}
+  .nav-indicator{border-radius:12px}
+}
+
+/* ---------- Section rail (wide screens) ---------- */
+.section-rail{position:fixed;z-index:25;left:clamp(16px,2vw,32px);top:50%;transform:translateY(-50%);display:none;flex-direction:column;gap:20px;color:var(--muted);font:9px var(--mono);letter-spacing:.1em;text-transform:uppercase}
+@media(min-width:1400px) and (hover:hover){.section-rail{display:flex}}
+.section-rail-count b{display:inline-block;color:var(--text);font-weight:400;animation:rail-count .5s var(--ease-out)}
+@keyframes rail-count{from{opacity:0;transform:translateY(6px)}}
+.section-rail ol{display:grid;gap:13px;margin:0;padding:0;list-style:none}
+.section-rail a{display:flex;align-items:center;gap:10px;color:inherit}
+.section-rail i{display:block;width:14px;height:1px;background:rgba(255,255,255,.25);transition:width .5s var(--ease-out),background-color .3s}
+.section-rail span{opacity:0;transform:translateX(-4px);transition:opacity .3s,transform .45s var(--ease-out)}
+.section-rail li.is-active i{width:30px;background:var(--platinum)}
+.section-rail li.is-active span{opacity:1;transform:none;color:var(--text)}
+.section-rail a:hover span{opacity:1;transform:none}
+
+/* ---------- Section labels & line reveals ---------- */
+.section-index{display:flex;align-items:center;gap:12px;margin:0 0 20px;color:var(--muted);font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.section-index::before{content:"";width:28px;height:1px;background:var(--irid)}
+/* Room for descenders inside the line masks SplitText creates. */
+[data-reveal="lines"]>*{padding-bottom:.08em;margin-bottom:-.08em}
+
+/* ---------- Pointer spotlight (desktop) ---------- */
+[data-spotlight]{position:relative;--mx:50%;--my:50%}
+.has-pointer-effects [data-spotlight]::before{content:"";position:absolute;z-index:2;inset:0;padding:1px;border-radius:inherit;background:radial-gradient(300px circle at var(--mx) var(--my),rgba(236,234,228,.6),rgba(168,230,240,.22) 38%,transparent 70%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .4s;pointer-events:none}
+.has-pointer-effects [data-spotlight]::after{content:"";position:absolute;z-index:0;inset:0;border-radius:inherit;background:radial-gradient(420px circle at var(--mx) var(--my),rgba(var(--accent-rgb),.07),transparent 65%);opacity:0;transition:opacity .4s;pointer-events:none}
+.has-pointer-effects [data-spotlight]:hover::before,.has-pointer-effects [data-spotlight]:hover::after{opacity:1}
+
+/* ---------- Projects: bento grid ---------- */
+@media(min-width:901px){
+  .project-grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
+  .project-card{grid-column:span 5;display:flex;flex-direction:column}
+  .project-card-featured{grid-column:span 7;grid-row:span 2;display:flex;flex-direction:column;min-height:0}
+  .project-card-featured .project-image{flex:1 1 auto;height:auto;min-height:320px}
+  .project-card:not(.project-card-featured) .project-image{height:180px}
+  .project-card-featured .project-content{align-self:stretch;padding:clamp(24px,3vw,40px)}
+  .project-card-featured .project-content h3{font-size:clamp(26px,2.6vw,38px)}
+  .project-card:nth-child(n+4){grid-column:span 4}
+}
+.project-image img{transition:transform 1s var(--ease-out),filter .6s}
+.project-card:hover .project-image img{transform:scale(1.06)}
+[data-tilt]{transform-style:preserve-3d;will-change:transform}
+/* GSAP drives transforms on desktop; CSS transitions on transform would fight it. */
+.has-pointer-effects .project-card{transition:border-color .3s}
+.has-pointer-effects .project-card:hover{transform:none}
+.has-pointer-effects [data-magnetic]{transition:background-color .2s,color .2s,border-color .2s}
+
+/* ---------- Services process rail ---------- */
+.process-row{position:relative}
+@media(min-width:681px){.process-row{overflow:hidden}}
+.process-rail{position:absolute;left:0;bottom:0;width:100%;height:2px;background:var(--irid);transform:scaleX(var(--progress,1));transform-origin:left center;opacity:.9;pointer-events:none}
+.process-row.is-scrubbed .process-rail{transform:scaleX(var(--progress,0))}
+.process-step{transition:color .45s}
+.process-step b{transition:color .45s}
+.process-row.is-scrubbed .process-step,.process-row.is-scrubbed .process-step b{color:var(--muted)}
+.process-row.is-scrubbed .process-step.is-active{color:var(--text)}
+.process-row.is-scrubbed .process-step.is-active b{color:var(--accent)}
+
+/* ---------- Cursor ring (desktop) ---------- */
+.cursor-ring{position:fixed;left:0;top:0;z-index:200;display:grid;place-items:center;width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid rgba(236,234,228,.5);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s,width .45s var(--ease-out),height .45s var(--ease-out),margin .45s var(--ease-out),background-color .3s,border-color .3s}
+.cursor-ring.is-visible{opacity:1}
+.cursor-ring.is-hover{width:52px;height:52px;margin:-26px 0 0 -26px;border-color:rgba(236,234,228,.85);background:rgba(236,234,228,.05)}
+.cursor-ring.has-label{width:76px;height:76px;margin:-38px 0 0 -38px;border-color:transparent;background:rgba(236,234,228,.94)}
+.cursor-ring.is-pressed{width:24px;height:24px;margin:-12px 0 0 -12px}
+.cursor-ring.is-hidden{opacity:0}
+.cursor-label{color:#0b0c10;font:700 9px var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:0;transition:opacity .2s}
+.cursor-ring.has-label .cursor-label{opacity:1}
+
+/* ---------- Links & buttons ---------- */
+.details-link,.back-link{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;padding-bottom:3px;transition:background-size .5s var(--ease-out),color .2s}
+.details-link:hover,.back-link:hover{background-size:100% 1px}
+.button span[aria-hidden],.details-link span,.social-link span:last-child{display:inline-block;transition:transform .4s var(--ease-out)}
+.button:hover span[aria-hidden],.details-link:hover span,.social-link:hover span:last-child{transform:translate(3px,-2px)}
+.button-primary{position:relative;isolation:isolate;overflow:hidden}
+.button-primary::after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(168,230,240,.55) 45%,rgba(233,184,240,.5) 52%,rgba(255,233,181,.5) 58%,transparent 72%);transform:translateX(-120%);transition:transform .9s var(--ease-out);pointer-events:none}
+.button-primary:hover::after{transform:translateX(120%)}
+
+/* ---------- Contact form states ---------- */
+.field-label input,.field-label textarea{transition:border-color .3s,box-shadow .3s,background-color .3s}
+.field-label input:focus,.field-label textarea:focus{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.12);background:#10111a}
+.contact-form[data-state="sending"] .button-primary{background:linear-gradient(90deg,#cfd2de,#f4f4f5,#cfd2de);background-size:200% 100%;animation:button-loading 1.2s linear infinite}
+@keyframes button-loading{to{background-position:-200% 0}}
+.form-message[data-state="sending"]{animation:message-sending .4s var(--ease-out)}
+.form-message[data-state="success"]{animation:message-success .6s var(--ease-out)}
+.form-message[data-state="error"]{animation:message-error .5s var(--ease-out)}
+@keyframes message-sending{from{opacity:0}}
+@keyframes message-success{from{opacity:0;transform:translateY(6px)}}
+@keyframes message-error{0%{opacity:0}20%{transform:translateX(-5px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+
+/* ---------- Footer wordmark ---------- */
+.footer{position:relative;overflow:hidden;padding-top:clamp(56px,9vw,120px)}
+.footer-big{display:block;margin:0 0 clamp(20px,3vw,36px);font:700 clamp(72px,17vw,250px)/.82 var(--display);letter-spacing:-.06em;text-transform:lowercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(236,234,228,.14);user-select:none}
+
+/* ---------- View transitions (project card -> detail page) ---------- */
+::view-transition{pointer-events:none}
+::view-transition-group(.morph){animation-duration:.6s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
+::view-transition-image-pair(.morph){animation-name:via-blur}
+@keyframes via-blur{30%{filter:blur(3px)}}
+::view-transition-group(site-header){animation:none;z-index:100}
+::view-transition-old(site-header){display:none}
+::view-transition-new(site-header){animation:none}
+
+/* ---------- Small screens ---------- */
+@media(max-width:680px){
+  .marquee-item{font-size:clamp(22px,7vw,30px)}
+  .footer-big{font-size:clamp(64px,22vw,120px)}
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  .marquee-track{animation:none}
+  .marquee{overflow-x:auto}
+  .availability i::after,.scroll-arrow{animation:none}
+  ::view-transition-old(*),::view-transition-new(*),::view-transition-group(*){animation-duration:0s!important;animation-delay:0s!important}
+}

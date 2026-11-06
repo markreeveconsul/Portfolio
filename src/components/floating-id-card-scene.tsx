@@ -6,6 +6,7 @@ import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import { idCardDimensions, idCardPalette, idCardRendering } from "@/data/id-card-design";
 import { getCardSurfaceNormalCanvas, type CardFaceCanvases } from "@/components/id-card-textures";
+import { heroScrollState } from "@/lib/hero-scroll";
 
 const CARD_WIDTH = idCardDimensions.width;
 const CARD_HEIGHT = idCardDimensions.height;
@@ -194,6 +195,7 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
   onFlip: () => void;
 }) {
   const card = useRef<THREE.Group>(null);
+  const scrollRig = useRef<THREE.Group>(null);
   const targetRotation = useRef({ x: 0, y: 0 });
   const drag = useRef<DragState>({ active: false, pointerId: null, x: 0, y: 0 });
   const cardGeometry = useMemo(createCardGeometry, []);
@@ -354,6 +356,7 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
       window.removeEventListener("pointerup", finish);
       window.removeEventListener("pointercancel", finish);
       document.body.style.cursor = "";
+      delete document.documentElement.dataset.cursorHint;
     };
   }, [gl]);
 
@@ -365,6 +368,15 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     mesh.rotation.x = THREE.MathUtils.damp(mesh.rotation.x, targetRotation.current.x, 8, delta);
     mesh.rotation.z = THREE.MathUtils.damp(mesh.rotation.z, -targetRotation.current.x * 0.12, 5, delta);
     mesh.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.075;
+
+    // Scroll-linked exit: as the hero scrolls away the card tips back, sinks, and shrinks.
+    const rig = scrollRig.current;
+    if (rig) {
+      const progress = heroScrollState.progress;
+      rig.rotation.x = THREE.MathUtils.damp(rig.rotation.x, -progress * 0.7, 6, delta);
+      rig.position.y = THREE.MathUtils.damp(rig.position.y, -progress * 0.9, 6, delta);
+      rig.scale.setScalar(THREE.MathUtils.damp(rig.scale.x, 1 - progress * 0.18, 6, delta));
+    }
   });
 
   function startDrag(event: ThreeEvent<PointerEvent>) {
@@ -375,10 +387,10 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     document.body.style.cursor = "grabbing";
   }
 
-  return <>
+  return <group ref={scrollRig}>
     <mesh geometry={shadowGeometry} material={penumbraMaterial} position={[cardX, -0.14, -0.2]} scale={[1.35, 1.25, 1]} renderOrder={0} />
     <mesh geometry={shadowGeometry} material={shadowMaterial} position={[cardX, -0.08, -0.16]} renderOrder={0} />
-    <group ref={card} position={[cardX, 0, 0]} scale={[MODEL_VISUAL_SCALE_X * CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE]} onPointerDown={startDrag} onClick={(event) => { if (event.delta < 6) onFlip(); }} onPointerOver={() => { if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { if (!drag.current.active) document.body.style.cursor = ""; }}>
+    <group ref={card} position={[cardX, 0, 0]} scale={[MODEL_VISUAL_SCALE_X * CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE]} onPointerDown={startDrag} onClick={(event) => { if (event.delta < 6) onFlip(); }} onPointerOver={() => { document.documentElement.dataset.cursorHint = "drag"; if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { delete document.documentElement.dataset.cursorHint; if (!drag.current.active) document.body.style.cursor = ""; }}>
     <mesh geometry={cardGeometry} material={cardMaterials} />
     <mesh geometry={cardGeometry} material={sheenMaterials} renderOrder={2} />
     <mesh geometry={ruleGeometry} position={[-CARD_WIDTH / 2 + CARD_WIDTH * (50 / 380), CARD_HEIGHT / 2 - CARD_HEIGHT * (472.5 / 590), CARD_DEPTH / 2 + 0.009]} material={ruleMaterial} renderOrder={3} />
@@ -387,7 +399,7 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.008]} material={foilSpectrumMaterial} renderOrder={4} />
     <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.008]} rotation={[0, Math.PI, 0]} material={foilSpectrumMaterial} renderOrder={4} />
     </group>
-  </>;
+  </group>;
 }
 
 function CardRig({ paused, fast, faceBack, faces, onFlip }: {

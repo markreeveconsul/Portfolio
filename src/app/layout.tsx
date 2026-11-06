@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, JetBrains_Mono, Space_Mono, Syne } from "next/font/google";
 import { MotionConfig } from "framer-motion";
+import { SmoothScroll } from "@/components/smooth-scroll";
+import { PointerEffects } from "@/components/pointer-effects";
 import "./globals.css";
 import "./visual-polish.css";
+import "./motion.css";
 
 const display = Syne({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 const body = Instrument_Sans({ subsets: ["latin"], variable: "--font-body", display: "swap" });
@@ -23,5 +26,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0B0C10", colorScheme: "dark" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${display.variable} ${body.variable} ${mono.variable} ${cardMono.variable}`}><MotionConfig reducedMotion="user">{children}</MotionConfig></body></html>;
+  return <html lang="en"><body className={`${display.variable} ${body.variable} ${mono.variable} ${cardMono.variable}`}>
+    <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    <SmoothScroll />
+    <PointerEffects />
+    <div className="grain" aria-hidden="true" />
+  </body></html>;
 }

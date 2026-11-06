@@ -1,6 +1,5 @@
-/* Editorial visual pass: quieter grid, clearer type scale, and less decorative glass. */
-:root{--bg:#0b0c10;--surface:#111218;--line:rgba(255,255,255,.1);--text:#f3f2f5;--body:#b7b7c0;--muted:#898a96;--accent:#9a9fff}
-body{background-color:var(--bg);background-image:radial-gradient(ellipse 50% 40% at 68% 8%,rgba(124,140,255,.09),transparent 72%),linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:auto,56px 56px,56px 56px}
+/* Editorial visual pass: quieter grid, clearer type scale, and less decorative glass.
+   Tokens and the page background live in globals.css :root. */
 .site-wrap{width:min(1200px,calc(100% - 64px))}
 .section{padding:clamp(88px,10vw,136px) 0;border-color:rgba(255,255,255,.09)}
 .hero{min-height:min(900px,100svh);padding-top:140px;padding-bottom:88px;gap:clamp(20px,4vw,64px)}

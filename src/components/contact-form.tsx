@@ -27,11 +27,11 @@ export function ContactForm({ configured }: { configured: boolean }) {
 
   if (!configured) return <div className="contact-unavailable" role="status">Message delivery is not configured yet. This form will be available once email delivery is connected.</div>;
 
-  return <form className="contact-form" onSubmit={handleSubmit}>
+  return <form className="contact-form" data-state={status} onSubmit={handleSubmit}>
     <label className="field-label">Your name<input autoComplete="name" name="name" required maxLength={100} placeholder="Name" /></label>
     <label className="field-label">Your email<input autoComplete="email" name="email" type="email" required maxLength={254} placeholder="you@example.com" /></label>
     <label className="field-label">Message<textarea name="message" required minLength={10} maxLength={4000} placeholder="Tell me a little about what you have in mind…" /></label>
-    <button className="button button-primary" type="submit" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Send message"} <span aria-hidden="true">↗</span></button>
+    <button className="button button-primary" type="submit" disabled={status === "sending"} data-magnetic=""><span className="button-label">{status === "sending" ? "Sending…" : "Send message"}</span> <span aria-hidden="true">↗</span></button>
     <p className="form-message" data-state={status} role="status" aria-live="polite">{message}</p>
   </form>;
 }
