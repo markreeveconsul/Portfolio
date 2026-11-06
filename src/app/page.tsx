@@ -4,7 +4,6 @@ import { HeroIdCard } from "@/components/hero-id-card";
 import { HeroHeadline } from "@/components/hero-headline";
 import { HeroMotion } from "@/components/hero-motion";
 import { PortfolioExplorer } from "@/components/portfolio-explorer";
-import { ContactForm } from "@/components/contact-form";
 import { PortfolioJump } from "@/components/portfolio-jump";
 import { ScrollReveals } from "@/components/scroll-reveals";
 import { SectionRail } from "@/components/section-rail";
@@ -75,7 +74,7 @@ export default function HomePage() {
       </section>
 
       <section className="section" id="services">
-        <div className="section-heading"><p className="section-index" data-reveal="fade">05 / Services</p><h2 data-reveal="lines">Ways I can help.</h2><p data-reveal="fade">I am exploring these project types and will confirm each service as the portfolio develops.</p></div>
+        <div className="section-heading"><p className="section-index" data-reveal="fade">05 / Services</p><h2 data-reveal="lines">Ways I can help.</h2><p data-reveal="fade">Here’s what I can build for you.</p></div>
         <div className="services-grid" data-reveal="stagger">{services.map((service) => <article className="service-card glass-card" key={service.number} data-spotlight=""><span className="service-num">{service.number} / SERVICE</span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
         <div className="process-row glass-card" aria-label="How I work" data-process="">
           <span className="process-rail" data-process-rail="" aria-hidden="true" />
@@ -84,10 +83,9 @@ export default function HomePage() {
       </section>
 
       <section className="section" id="contact">
-        <div className="section-heading"><p className="section-index" data-reveal="fade">06 / Contact</p><h2 data-reveal="lines">Let’s build something<br />worth sharing.</h2><p data-reveal="fade">Have a project, opportunity, or collaboration in mind? Send a note.</p></div>
-        <div className="contact-grid" data-reveal="stagger">
-          <section className="contact-panel glass-card" id="contact-form" data-spotlight=""><h3>Send a message</h3><p>Send a note about a project, internship, or collaboration.</p><ContactForm configured={Boolean(process.env.FORMSPREE_ENDPOINT?.startsWith("https://formspree.io/f/"))} /></section>
-          <section className="contact-panel glass-card" data-spotlight=""><h3>Connect with me</h3><p>Email me directly, or browse what I’m building on GitHub.</p><div className="social-list">
+        <div className="section-heading"><p className="section-index" data-reveal="fade">06 / Contact</p><h2 data-reveal="lines">Let’s build something<br />worth sharing.</h2><p data-reveal="fade">Have a project, opportunity, or collaboration in mind? Reach out.</p></div>
+        <div className="contact-grid is-single" data-reveal="stagger">
+          <section className="contact-panel glass-card" data-spotlight=""><h3>Connect with me</h3><p>Email me directly, browse what I’m building on GitHub, or ask the chat assistant in the corner.</p><div className="social-list">
             {profile.github.startsWith("https://") ? <a className="social-link" href={profile.github} target="_blank" rel="noreferrer"><span>GitHub</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>GitHub</span><span>Link coming soon</span></div>}
             {profile.linkedin.startsWith("https://") ? <a className="social-link" href={profile.linkedin} target="_blank" rel="noreferrer"><span>LinkedIn</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>LinkedIn</span><span>Link coming soon</span></div>}
             {profile.email.includes("@") ? <a className="social-link" href={`mailto:${profile.email}`}><span>Email</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>Email</span><span>Address coming soon</span></div>}
