@@ -5,10 +5,31 @@ import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "
 import { getIdCardFaceCanvases, type CardFaceCanvases } from "@/components/id-card-textures";
 import { idCardCopy } from "@/data/id-card-design";
 
+// Encoding a 1520×2360 canvas is expensive. Do it once per canvas, off the
+// render path (toBlob is async), and reuse the object URL on every re-render.
+const encodedFaces = new WeakMap<HTMLCanvasElement, Promise<string>>();
+function encodeFace(canvas: HTMLCanvasElement) {
+  let encoded = encodedFaces.get(canvas);
+  if (!encoded) {
+    encoded = new Promise<string>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(URL.createObjectURL(blob)) : reject(new Error("Card encoding failed"))), "image/webp", 0.94));
+    encodedFaces.set(canvas, encoded);
+  }
+  return encoded;
+}
+
 function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; reducedMotion: boolean }) {
   const [faceBack, setFaceBack] = useState(false);
-  const frontImage = faces?.front.toDataURL("image/webp", 0.94);
-  const backImage = faces?.back.toDataURL("image/webp", 0.94);
+  const [images, setImages] = useState<{ front: string; back: string } | null>(null);
+  useEffect(() => {
+    if (!faces) return;
+    let active = true;
+    Promise.all([encodeFace(faces.front), encodeFace(faces.back)])
+      .then(([front, back]) => { if (active) setImages({ front, back }); })
+      .catch(() => { /* keep the text fallback */ });
+    return () => { active = false; };
+  }, [faces]);
+  const frontImage = images?.front;
+  const backImage = images?.back;
 
   return <div className={`hero-card-stage css-id-stage${reducedMotion ? " reduced-motion" : ""}`} role="group" aria-label="Portfolio ID card">
     <button className={`css-flat-card${faceBack ? " is-back" : ""}`} type="button" aria-label={faceBack ? "Show the front of Mark’s card" : "Flip card to see the system profile"} onClick={() => setFaceBack((value) => !value)}>

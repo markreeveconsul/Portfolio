@@ -3,6 +3,9 @@ import { Instrument_Sans, JetBrains_Mono, Space_Mono, Syne } from "next/font/goo
 import { MotionConfig } from "framer-motion";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { PointerEffects } from "@/components/pointer-effects";
+import { BootIntro } from "@/components/boot-intro";
+import { CommandPalette } from "@/components/command-palette";
+import { bootScript } from "@/lib/boot";
 import "./globals.css";
 import "./visual-polish.css";
 import "./motion.css";
@@ -26,10 +29,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0B0C10", colorScheme: "dark" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${display.variable} ${body.variable} ${mono.variable} ${cardMono.variable}`}>
+  // suppressHydrationWarning: the pre-paint boot script sets data-boot on <html> before React hydrates.
+  return <html lang="en" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: bootScript }} /></head><body className={`${display.variable} ${body.variable} ${mono.variable} ${cardMono.variable}`}>
+    <BootIntro />
     <MotionConfig reducedMotion="user">{children}</MotionConfig>
     <SmoothScroll />
     <PointerEffects />
+    <CommandPalette />
     <div className="grain" aria-hidden="true" />
   </body></html>;
 }

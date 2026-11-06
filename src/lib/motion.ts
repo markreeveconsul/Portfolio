@@ -6,6 +6,10 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
+// Animations follow real time. GSAP's default lag smoothing pretends long frames
+// were short, which can leave entrance animations crawling (and content
+// invisible) while the main thread is busy loading the 3D card.
+gsap.ticker.lagSmoothing(0);
 
 export { gsap, ScrollTrigger, SplitText, useGSAP };
 
@@ -26,6 +30,32 @@ export const SCROLL_LOCK_EVENT = "portfolio:scroll-lock";
 
 export function setScrollLock(locked: boolean) {
   window.dispatchEvent(new CustomEvent<boolean>(SCROLL_LOCK_EVENT, { detail: locked }));
+}
+
+// Programmatic section scrolling that goes through Lenis when it's active.
+export const SCROLL_TO_EVENT = "portfolio:scroll-to";
+
+export function scrollToSection(id: string) {
+  const handled = !window.dispatchEvent(new CustomEvent<string>(SCROLL_TO_EVENT, { detail: id, cancelable: true }));
+  if (handled) return;
+  document.getElementById(id)?.scrollIntoView({ behavior: matches(motionQueries.motionOk) ? "smooth" : "auto", block: "start" });
+}
+
+// Boot intro coordination. The <html data-boot> attribute is set before first
+// paint by an inline script: "play" while the intro runs, "done" afterwards,
+// "skip" when it won't run (returning visit this session, reduced motion).
+export const BOOT_DONE_EVENT = "portfolio:boot-done";
+
+export function isBootPlaying() {
+  return typeof document !== "undefined" && document.documentElement.dataset.boot === "play";
+}
+
+/** Runs `callback` once the boot intro has finished (immediately if it isn't playing). */
+export function afterBoot(callback: () => void) {
+  if (!isBootPlaying()) { callback(); return () => {}; }
+  const onDone = () => callback();
+  window.addEventListener(BOOT_DONE_EVENT, onDone, { once: true });
+  return () => window.removeEventListener(BOOT_DONE_EVENT, onDone);
 }
 
 // Signature easing: fast in, gentle settle.

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { profile } from "@/data/profile";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/motion";
+import { OPEN_PALETTE_EVENT } from "@/components/command-palette";
 
 const links = [
   { id: "home", label: "Home" },
@@ -21,6 +22,7 @@ const links = [
 export function Navbar({ onHome = true }: { onHome?: boolean }) {
   const [active, setActive] = useState(onHome ? "home" : "");
   const [open, setOpen] = useState(false);
+  const [shortcut, setShortcut] = useState("Ctrl K");
   const navRef = useRef<HTMLElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -43,6 +45,10 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
     ScrollTrigger.create({ start: 80, end: "max", toggleClass: { targets: nav, className: "is-compact" } });
     if (progressRef.current) gsap.fromTo(progressRef.current, { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: 0.3 } });
   });
+
+  useEffect(() => {
+    if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) setShortcut("⌘K");
+  }, []);
 
   useEffect(() => {
     if (open) menuLinksRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
@@ -73,6 +79,9 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
           : <Link key={id} href={{ pathname: "/", hash: id }} {...shared}>{content}</Link>;
       })}
     </div>
+    <button className="palette-trigger" type="button" aria-label={`Open command palette (${shortcut})`} aria-keyshortcuts="Control+K Meta+K" onClick={() => { setOpen(false); window.dispatchEvent(new Event(OPEN_PALETTE_EVENT)); }}>
+      <span className="palette-trigger-icon" aria-hidden="true">&gt;_</span><kbd aria-hidden="true">{shortcut}</kbd>
+    </button>
     {onHome
       ? <a className="button quote-link" href="#contact" data-magnetic="">Get a quote <span aria-hidden="true">↗</span></a>
       : <Link className="button quote-link" href={{ pathname: "/", hash: "contact" }} data-magnetic="">Get a quote <span aria-hidden="true">↗</span></Link>}

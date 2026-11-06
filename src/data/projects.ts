@@ -1,5 +1,26 @@
 export type ProjectStatus = "Completed" | "In progress";
 
+/**
+ * Optional case-study content. Every field is optional: the detail page only
+ * renders a section once its field is filled in, so nothing half-written ships.
+ */
+export type CaseStudy = {
+  /** Your role, e.g. "Solo developer" or "Backend developer (team of 4)". */
+  role?: string;
+  /** e.g. "Aug – Oct 2026" or "6 weeks". */
+  timeline?: string;
+  /** What problem the project solves and for whom. */
+  problem?: string;
+  /** How you approached it, one step per entry. */
+  approach?: string[];
+  /** Results: what shipped, what worked, numbers if you have them. */
+  outcome?: string;
+  /** Lessons learned, one per entry. */
+  learnings?: string[];
+  /** Screenshots in /public/images/projects/... */
+  gallery?: { src: string; alt: string; caption?: string }[];
+};
+
 export type PortfolioProject = {
   slug: string;
   name: string;
@@ -15,6 +36,9 @@ export type PortfolioProject = {
   imageAlt: string;
   demoUrl?: string;
   githubUrl?: string;
+  /** "owner/name" of the public GitHub repo; enables live language and activity stats. */
+  repo?: string;
+  caseStudy?: CaseStudy;
 };
 
 export const projects: PortfolioProject[] = [
@@ -56,6 +80,9 @@ export const projects: PortfolioProject[] = [
     features: ["Networking learning experience", "Simulation sandbox"],
     image: "/images/netpath-placeholder.svg",
     imageAlt: "Abstract placeholder preview for the NetPath networking learning project",
+    // Public repo with the same name and description on GitHub; confirm it's the right one.
+    githubUrl: "https://github.com/markreeveconsul/NetPath",
+    repo: "markreeveconsul/NetPath",
   },
 ];
 
