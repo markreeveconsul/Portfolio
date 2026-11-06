@@ -7,8 +7,12 @@ import { idCardCopy } from "@/data/id-card-design";
 import { afterBoot, useAfterBoot } from "@/lib/motion";
 import { CardMaterialize } from "@/components/card-materialize";
 
-/** The WebGL card mounts this long after the boot ends, once the hero headline and copy have started animating. */
-const SCENE_DELAY_MS = 900;
+/**
+ * The WebGL card mounts this long after the boot ends: after the headline has
+ * decoded and the hero copy has risen in, so the shader compile can't stutter
+ * them. The materializing placeholder covers the wait.
+ */
+const SCENE_DELAY_MS = 1700;
 
 // Encoding a 1520×2360 canvas is expensive. Do it once per canvas, off the
 // render path (toBlob is async), and reuse the object URL on every re-render.
@@ -136,10 +140,17 @@ function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; r
     return () => { active = false; };
   }, [faces]);
   const ready = Boolean(images);
+  // Keep the placeholder briefly after the card arrives, fading out, so it's a crossfade, not a swap.
+  const [placeholderGone, setPlaceholderGone] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const timer = window.setTimeout(() => setPlaceholderGone(true), 800);
+    return () => window.clearTimeout(timer);
+  }, [ready]);
 
   return <div className={`hero-card-stage css-id-stage${reducedMotion ? " reduced-motion" : ""}`} role="group" aria-label="Portfolio ID card">
     {/* The button stays mounted (the spin hook needs it); it's hidden until the card images are ready. */}
-    {!ready && <CardMaterialize />}
+    {!placeholderGone && <CardMaterialize leaving={ready} />}
     <button ref={buttonRef} className={`css-flat-card is-spinning${ready ? " is-ready" : " is-waiting"}`} type="button" aria-label={faceBack ? "Show the front of Mark’s card" : "Flip card to see the system profile"} onClick={flip} disabled={!ready}>
       <span ref={innerRef} className="css-flat-card-inner">
         <span className="css-flat-face css-flat-front">{images && <img src={images.front} alt="Front of Mark Reeve Consul’s portfolio ID card" />}<span className="css-irid-rule" aria-hidden="true" /></span>
@@ -181,13 +192,17 @@ export function HeroIdCard() {
   const [placeholderGone, setPlaceholderGone] = useState(false);
   const onSceneReady = () => {
     setSceneDrawn(true);
-    window.setTimeout(() => setPlaceholderGone(true), 900); // after the crossfade
+    window.setTimeout(() => setPlaceholderGone(true), 1000); // after the 900ms crossfade
   };
 
   useEffect(() => {
     let active = true;
-    getIdCardFaceCanvases().then((result) => { if (active) setFaces(result); }).catch(() => { if (active) setTextureError(true); });
-    return () => { active = false; };
+    // During the intro, the boot sequence generates the textures at a quiet moment
+    // (same cached promise); otherwise start once the page has settled.
+    const cancel = afterBoot(() => {
+      getIdCardFaceCanvases().then((result) => { if (active) setFaces(result); }).catch(() => { if (active) setTextureError(true); });
+    });
+    return () => { active = false; cancel(); };
   }, []);
 
   useEffect(() => {

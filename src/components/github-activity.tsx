@@ -54,9 +54,11 @@ export async function GithubActivity({ user, profileUrl }: { user: string; profi
       <figure className="gh-heatmap">
         <div className="gh-months" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${weeks.length}, 1fr)` }}>{monthLabels.map((label, index) => <span key={index}>{label}</span>)}</div>
         <div className="gh-grid" role="img" aria-label={summary} data-reveal="grid" style={{ gridTemplateColumns: `repeat(${weeks.length}, 1fr)` }}>
-          {data.activity.map((day) => <span
+          {data.activity.map((day, index) => <span
             key={day.date}
             className={`gh-cell level-${cellLevel(day)}`}
+            // Diagonal wave order for the CSS reveal: week column + weekday row.
+            style={{ "--i": Math.floor(index / 7) + (index % 7) } as React.CSSProperties}
             title={day.known ? `${formatDate(`${day.date}T00:00:00Z`)}: ${day.count} ${unit}${day.count === 1 ? "" : "s"}` : "Outside the data GitHub provides"}
           />)}
         </div>

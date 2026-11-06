@@ -7,6 +7,7 @@ type Node = { x: number; y: number; vx: number; vy: number; ox: number; oy: numb
 type Packet = { from: number; to: number; t: number; speed: number };
 
 const LINK_DISTANCE = 150;
+const PARALLAX_RATE = 0.12;
 const CURSOR_RADIUS = 190;
 const PACKET_COLORS = ["168,230,240", "233,184,240", "255,233,181"];
 
@@ -15,7 +16,11 @@ const PACKET_COLORS = ["168,230,240", "233,184,240", "255,233,181"];
  * and small "packets" travel along links. 2D canvas on purpose: the ID card
  * already owns the page's only WebGL context.
  */
-export function NetworkField() {
+/**
+ * @param duringBoot run during the boot intro (the intro's own background) instead of waiting for it
+ * @param parallax   site-wide background: the field drifts past slowly as the page scrolls
+ */
+export function NetworkField({ duringBoot = false, parallax = false, className = "" }: { duringBoot?: boolean; parallax?: boolean; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -115,8 +120,14 @@ export function NetworkField() {
     function draw(delta: number) {
       if (delta) step(delta);
       ctx.clearRect(0, 0, width, height);
+      // Site-wide background: the field drifts up slowly as the page scrolls, wrapping
+      // around so it never runs out (a 40px margin hides the wrap at the edges).
+      const scrollShift = parallax ? -window.scrollY * PARALLAX_RATE : 0;
+      const span = height + 40;
       const px = (node: Node) => node.x + node.ox;
-      const py = (node: Node) => node.y + node.oy;
+      const py = parallax
+        ? (node: Node) => ((((node.y + node.oy + scrollShift + 20) % span) + span) % span) - 20
+        : (node: Node) => node.y + node.oy;
 
       ctx.lineWidth = 1;
       for (let i = 0; i < nodes.length; i += 1) {
@@ -203,7 +214,11 @@ export function NetworkField() {
       document.documentElement.addEventListener("pointerleave", onPointerLeave);
     }
     resize();
-    const cancelBootWait = afterBoot(() => { booted = true; play(); });
+    // The hero's field waits for the intro; the intro's own field runs right away.
+    let cancelBootWait = () => {};
+    const start = () => { booted = true; play(); canvas.classList.add("is-live"); };
+    if (duringBoot) start();
+    else cancelBootWait = afterBoot(start);
 
     return () => {
       cancelBootWait();
@@ -214,7 +229,7 @@ export function NetworkField() {
       window.removeEventListener("pointermove", onPointerMove);
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
     };
-  }, []);
+  }, [duringBoot, parallax]);
 
-  return <canvas ref={canvasRef} className="network-field" aria-hidden="true" />;
+  return <canvas ref={canvasRef} className={`network-field ${className}`.trim()} aria-hidden="true" />;
 }
