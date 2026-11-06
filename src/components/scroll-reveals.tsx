@@ -9,6 +9,7 @@ import { gsap, ScrollTrigger, SplitText, useGSAP, ease, motionQueries } from "@/
  * - `data-reveal="lines"`   heading slides up line by line inside a mask
  * - `data-reveal="stagger"` direct children rise in one after another
  * - `data-reveal="fade"`    the element itself rises in
+ * - `data-reveal="grid"`    children pop in as a diagonal wave (2D grids)
  * - `data-count`            number counts up from 0 (value = final number)
  * - `data-process`          steps light up and a rail fills as you scroll
  *
@@ -30,6 +31,11 @@ export function ScrollReveals() {
 
       document.querySelectorAll<HTMLElement>("[data-reveal='stagger']").forEach((group) => {
         gsap.from(group.children, { autoAlpha: 0, y: 36, duration: 1, ease: ease.out, stagger: 0.09, scrollTrigger: trigger(group) });
+      });
+
+      // Dense grids (activity heatmap): cells pop in as a diagonal wave.
+      document.querySelectorAll<HTMLElement>("[data-reveal='grid']").forEach((grid) => {
+        gsap.from(grid.children, { autoAlpha: 0, scale: 0.2, duration: 0.5, ease: "back.out(2)", stagger: { amount: 1.4, grid: "auto", from: "start" }, scrollTrigger: trigger(grid) });
       });
 
       document.querySelectorAll<HTMLElement>("[data-count]").forEach((element) => {

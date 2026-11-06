@@ -23,3 +23,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Arch Linux logo
+
+The Arch Linux name and logo are trademarks of Arch Linux. The logo appears on
+this site (ID card, boot intro, footer wordmark) only to show that the author
+uses Arch Linux. This site is not affiliated with or endorsed by Arch Linux.
+See https://terms.archlinux.org/docs/trademark-policy/.
+
+## GSAP
+
+GSAP and its plugins (ScrollTrigger, SplitText) by GreenSock / Webflow, used
+under the GreenSock Standard "no charge" license: https://gsap.com/standard-license
+
+## Lenis
+
+Lenis by darkroom.engineering, MIT License: https://github.com/darkroomengineering/lenis

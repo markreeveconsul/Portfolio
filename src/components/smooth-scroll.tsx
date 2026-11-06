@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
-import { gsap, ScrollTrigger, SCROLL_LOCK_EVENT, motionQueries } from "@/lib/motion";
+import { gsap, isBootPlaying, ScrollTrigger, SCROLL_LOCK_EVENT, SCROLL_TO_EVENT, motionQueries } from "@/lib/motion";
 
 const NAV_OFFSET = -96;
 
@@ -29,9 +29,10 @@ export function SmoothScroll() {
         prevent: (node) => Boolean(node.closest?.(".chat-assistant, .lightbox, [data-lenis-prevent]")),
       });
       lenis.on("scroll", ScrollTrigger.update);
+      // The boot intro may have asked for a lock before Lenis existed.
+      if (isBootPlaying()) lenis.stop();
       tick = (time) => lenis?.raf(time * 1000);
       gsap.ticker.add(tick);
-      gsap.ticker.lagSmoothing(0);
     };
 
     const stop = () => {
@@ -39,7 +40,6 @@ export function SmoothScroll() {
       tick = null;
       lenis?.destroy();
       lenis = null;
-      gsap.ticker.lagSmoothing(500, 33);
     };
 
     // Same-page anchor links: cancel the browser's instant jump and glide instead.
@@ -57,6 +57,13 @@ export function SmoothScroll() {
     };
 
     const sync = () => (query.matches ? start() : stop());
+    const onScrollTo = (event: Event) => {
+      const target = document.getElementById((event as CustomEvent<string>).detail);
+      if (!lenis || !target) return;
+      event.preventDefault();
+      lenis.scrollTo(target, { offset: NAV_OFFSET, duration: 1.3 });
+    };
+
     const onLock = (event: Event) => {
       if (!lenis) return;
       if ((event as CustomEvent<boolean>).detail) lenis.stop();
@@ -66,10 +73,12 @@ export function SmoothScroll() {
     sync();
     query.addEventListener("change", sync);
     window.addEventListener(SCROLL_LOCK_EVENT, onLock);
+    window.addEventListener(SCROLL_TO_EVENT, onScrollTo);
     document.addEventListener("click", onClick);
     return () => {
       query.removeEventListener("change", sync);
       window.removeEventListener(SCROLL_LOCK_EVENT, onLock);
+      window.removeEventListener(SCROLL_TO_EVENT, onScrollTo);
       document.removeEventListener("click", onClick);
       stop();
     };

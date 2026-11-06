@@ -3,6 +3,9 @@ import { Instrument_Sans, JetBrains_Mono, Space_Mono, Syne } from "next/font/goo
 import { MotionConfig } from "framer-motion";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { PointerEffects } from "@/components/pointer-effects";
+import { BootIntro } from "@/components/boot-intro";
+import { CommandPalette } from "@/components/command-palette";
+import { bootScript } from "@/lib/boot";
 import "./globals.css";
 import "./visual-polish.css";
 import "./motion.css";
@@ -14,10 +17,10 @@ const cardMono = JetBrains_Mono({ subsets: ["latin"], weight: ["500"], variable:
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"),
-  title: "Your Name — Developer Portfolio",
+  title: "Mark Reeve Consul — Developer Portfolio",
   description: "Selected projects, experiments, and work by a 2nd-year IT student and developer.",
   openGraph: {
-    title: "Your Name — Developer Portfolio",
+    title: "Mark Reeve Consul — Developer Portfolio",
     description: "Selected projects and experiments in web development and AI.",
     images: [{ url: "/images/og-placeholder.svg", width: 1200, height: 630, alt: "Portfolio social preview placeholder" }],
   },
@@ -26,10 +29,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0B0C10", colorScheme: "dark" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${display.variable} ${body.variable} ${mono.variable} ${cardMono.variable}`}>
+  // suppressHydrationWarning: the pre-paint boot script sets data-boot on <html> before React hydrates.
+  return <html lang="en" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: bootScript }} /></head><body className={`${display.variable} ${body.variable} ${mono.variable} ${cardMono.variable}`}>
+    <BootIntro />
     <MotionConfig reducedMotion="user">{children}</MotionConfig>
     <SmoothScroll />
     <PointerEffects />
+    <CommandPalette />
     <div className="grain" aria-hidden="true" />
   </body></html>;
 }

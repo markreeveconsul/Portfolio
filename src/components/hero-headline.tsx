@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motionQueries } from "@/lib/motion";
+import { afterBoot, isBootPlaying, motionQueries } from "@/lib/motion";
 
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789/<>_+=#";
 // If hydration is this late, the CSS failsafe has already shown the text; don't re-hide it.
@@ -10,7 +10,7 @@ const LATE_START_MS = 2400;
 /**
  * Hero headline that "decodes": each character cycles through random glyphs
  * before settling, left to right. The real text is server-rendered, and screen
- * readers get it once through a visually hidden copy.
+ * readers get it once through a visually hidden copy. Waits for the boot intro.
  */
 export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: string }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -19,15 +19,17 @@ export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: s
     const heading = headingRef.current;
     if (!heading) return;
     const lines = Array.from(heading.querySelectorAll<HTMLElement>("[data-decode]"));
-    const reveal = () => heading.setAttribute("data-ready", "");
-    if (!window.matchMedia(motionQueries.motionOk).matches || performance.now() > LATE_START_MS) { reveal(); return; }
-
     const finals = lines.map((line) => line.dataset.decode ?? "");
+    const reveal = () => heading.setAttribute("data-ready", "");
+    const waitForBoot = isBootPlaying();
+    if (!window.matchMedia(motionQueries.motionOk).matches || (!waitForBoot && performance.now() > LATE_START_MS)) { reveal(); return; }
+
     const startDelay = 120;
     const charStagger = 38;
     const scrambleTime = 300;
     const lineGap = 160;
     let frame = 0;
+    let watchdog = 0;
     let startTime = 0;
     let random = 0x51f15e;
     const nextGlyph = () => {
@@ -35,8 +37,14 @@ export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: s
       return GLYPHS[random % GLYPHS.length];
     };
 
-    heading.classList.add("is-decoding");
-    reveal();
+    const finish = () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(watchdog);
+      lines.forEach((line, index) => { line.textContent = finals[index]; });
+      heading.classList.remove("is-decoding");
+      heading.classList.add("is-decoded");
+    };
+
     const render = (now: number) => {
       if (!startTime) startTime = now;
       const elapsed = now - startTime - startDelay;
@@ -55,15 +63,22 @@ export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: s
         lines[lineIndex].textContent = output;
         lineOffset += text.length * charStagger + lineGap;
       });
-      if (done) {
-        heading.classList.remove("is-decoding");
-        heading.classList.add("is-decoded");
-        return;
-      }
+      if (done) { finish(); return; }
       frame = requestAnimationFrame(render);
     };
-    frame = requestAnimationFrame(render);
+
+    const start = () => {
+      heading.classList.add("is-decoding");
+      reveal();
+      // Watchdog: never leave scrambled glyphs on screen if frames stop arriving.
+      watchdog = window.setTimeout(finish, 3500);
+      frame = requestAnimationFrame(render);
+    };
+    const cancelBootWait = afterBoot(start);
+
     return () => {
+      cancelBootWait();
+      window.clearTimeout(watchdog);
       cancelAnimationFrame(frame);
       lines.forEach((line, index) => { line.textContent = finals[index]; });
       heading.classList.remove("is-decoding");

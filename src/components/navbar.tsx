@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { profile } from "@/data/profile";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/motion";
+import { OPEN_PALETTE_EVENT } from "@/components/command-palette";
 
 const links = [
   { id: "home", label: "Home" },
@@ -21,6 +22,7 @@ const links = [
 export function Navbar({ onHome = true }: { onHome?: boolean }) {
   const [active, setActive] = useState(onHome ? "home" : "");
   const [open, setOpen] = useState(false);
+  const [shortcut, setShortcut] = useState("Ctrl K");
   const navRef = useRef<HTMLElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -45,6 +47,10 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
   });
 
   useEffect(() => {
+    if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) setShortcut("⌘K");
+  }, []);
+
+  useEffect(() => {
     if (open) menuLinksRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
   }, [open]);
 
@@ -59,7 +65,7 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [open]);
 
-  const logo = <>{profile.firstName.toLowerCase().replaceAll(" ", "")}.dev<span>_</span></>;
+  const logo = <>{profile.domain}<span>_</span></>;
 
   return <div className="navbar-wrap"><nav ref={navRef} className="navbar" aria-label="Main navigation">
     {onHome ? <a className="logo" href="#home" aria-label={`${profile.firstName}, home`}>{logo}</a> : <Link className="logo" href="/" aria-label={`${profile.firstName}, home`}>{logo}</Link>}
@@ -73,6 +79,9 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
           : <Link key={id} href={{ pathname: "/", hash: id }} {...shared}>{content}</Link>;
       })}
     </div>
+    <button className="palette-trigger" type="button" aria-label={`Open command palette (${shortcut})`} aria-keyshortcuts="Control+K Meta+K" onClick={() => { setOpen(false); window.dispatchEvent(new Event(OPEN_PALETTE_EVENT)); }}>
+      <span className="palette-trigger-icon" aria-hidden="true">&gt;_</span><kbd aria-hidden="true">{shortcut}</kbd>
+    </button>
     {onHome
       ? <a className="button quote-link" href="#contact" data-magnetic="">Get a quote <span aria-hidden="true">↗</span></a>
       : <Link className="button quote-link" href={{ pathname: "/", hash: "contact" }} data-magnetic="">Get a quote <span aria-hidden="true">↗</span></Link>}

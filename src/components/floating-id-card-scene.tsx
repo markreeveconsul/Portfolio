@@ -235,7 +235,8 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     envMapIntensity: idCardRendering.foil.envMapIntensity,
     iridescence: 1.0,
     iridescenceIOR: 1.3,
-    iridescenceThicknessRange: [120, 460],
+    iridescenceThicknessMinimum: 120,
+    iridescenceThicknessMaximum: 460,
     clearcoat: 0.14,
     clearcoatRoughness: 0.72,
   }), []);

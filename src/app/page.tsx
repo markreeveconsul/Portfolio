@@ -12,14 +12,16 @@ import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
 import { services } from "@/data/services";
 import { certificates } from "@/data/certificates";
-import { highlights } from "@/data/highlights";
+import { techStackItems } from "@/data/techstack";
 import { ChatMascot } from "@/components/chat-mascot";
+import { GithubActivity } from "@/components/github-activity";
+import { ArchWordmark } from "@/components/arch-wordmark";
 
 const processSteps = ["Talk", "Design", "Build", "Revise", "Deliver"];
 
 function Marquee() {
   // Two identical copies so translateX(-50%) loops without a seam.
-  const row = (copy: string) => highlights.map((item, index) => <span className={`marquee-item${index % 3 === 0 ? " is-solid" : ""}`} key={`${copy}-${item}`}>{item}<i>✦</i></span>);
+  const row = (copy: string) => techStackItems.map((item, index) => <span className={`marquee-item${index % 3 === 0 ? " is-solid" : ""}`} key={`${copy}-${item}`}>{item}<i>✦</i></span>);
   return <div className="marquee" aria-hidden="true">
     <div className="marquee-track">{row("a")}{row("b")}</div>
   </div>;
@@ -64,8 +66,13 @@ export default function HomePage() {
         <PortfolioExplorer />
       </section>
 
+      <section className="section" id="github">
+        <div className="section-heading"><p className="section-index" data-reveal="fade">04 / Activity</p><h2 data-reveal="lines">Shipping<br />in public.</h2><p data-reveal="fade">Live from GitHub: what I’ve been pushing lately, refreshed every hour.</p></div>
+        <GithubActivity user={profile.githubUser} profileUrl={profile.github} />
+      </section>
+
       <section className="section" id="services">
-        <div className="section-heading"><p className="section-index" data-reveal="fade">04 / Services</p><h2 data-reveal="lines">Ways I can help.</h2><p data-reveal="fade">I am exploring these project types and will confirm each service as the portfolio develops.</p></div>
+        <div className="section-heading"><p className="section-index" data-reveal="fade">05 / Services</p><h2 data-reveal="lines">Ways I can help.</h2><p data-reveal="fade">I am exploring these project types and will confirm each service as the portfolio develops.</p></div>
         <div className="services-grid" data-reveal="stagger">{services.map((service) => <article className="service-card glass-card" key={service.number} data-spotlight=""><span className="service-num">{service.number} / SERVICE</span><h3>{service.title}</h3><p>{service.description}</p></article>)}</div>
         <div className="process-row glass-card" aria-label="How I work" data-process="">
           <span className="process-rail" data-process-rail="" aria-hidden="true" />
@@ -74,7 +81,7 @@ export default function HomePage() {
       </section>
 
       <section className="section" id="contact">
-        <div className="section-heading"><p className="section-index" data-reveal="fade">05 / Contact</p><h2 data-reveal="lines">Let’s build something<br />worth sharing.</h2><p data-reveal="fade">Have a project, opportunity, or collaboration in mind? Send a note.</p></div>
+        <div className="section-heading"><p className="section-index" data-reveal="fade">06 / Contact</p><h2 data-reveal="lines">Let’s build something<br />worth sharing.</h2><p data-reveal="fade">Have a project, opportunity, or collaboration in mind? Send a note.</p></div>
         <div className="contact-grid" data-reveal="stagger">
           <section className="contact-panel glass-card" id="contact-form" data-spotlight=""><h3>Send a message</h3><p>Send a note about a project, internship, or collaboration.</p><ContactForm configured={Boolean(process.env.FORMSPREE_ENDPOINT?.startsWith("https://formspree.io/f/"))} /></section>
           <section className="contact-panel glass-card" data-spotlight=""><h3>Connect with me</h3><p>Public contact links will be added here.</p><div className="social-list">
@@ -84,7 +91,7 @@ export default function HomePage() {
           </div></section>
         </div>
       </section>
-      <footer className="footer"><span className="footer-big" aria-hidden="true">{profile.firstName}</span>© {new Date().getFullYear()} {profile.name} · BUILT WITH CARE</footer>
+      <footer className="footer"><span className="footer-big" aria-hidden="true"><ArchWordmark /></span>© {new Date().getFullYear()} {profile.name} · BUILT WITH CARE</footer>
     </main>
     <SectionRail />
     <ScrollReveals />
