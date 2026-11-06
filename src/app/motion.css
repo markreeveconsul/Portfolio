@@ -17,8 +17,8 @@ html.lenis{scroll-behavior:auto}
    A failsafe reveals it anyway if JavaScript is slow or fails. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference){
   [data-hero-reveal]:not([data-ready]){opacity:0}
-  /* The failsafe clock starts only once the boot intro is out of the way. */
-  html:not([data-boot="play"]) [data-hero-reveal]:not([data-ready]){animation:hero-failsafe 1ms 2.6s forwards}
+  /* The failsafe clock starts only once the boot intro is out of the way (finished or skipped). */
+  html:not([data-boot="play"]) [data-hero-reveal]:not([data-ready]),html[data-boot-skip] [data-hero-reveal]:not([data-ready]){animation:hero-failsafe 1ms 2.6s forwards}
 }
 @keyframes hero-failsafe{to{opacity:1;visibility:visible}}
 
@@ -36,6 +36,10 @@ html.lenis{scroll-behavior:auto}
 @keyframes status-ping{0%{transform:scale(.4);opacity:.85}100%{transform:scale(1.9);opacity:0}}
 
 .hero-card-shell{min-width:0}
+/* The WebGL card mounts after the intro; fade it in instead of popping. */
+.hero-card-canvas{animation:card-arrive 1.2s var(--ease-out) both}
+@keyframes card-arrive{from{opacity:0;transform:translateY(18px)}}
+@media(prefers-reduced-motion:reduce){.hero-card-canvas{animation:none}}
 .hero-scroll{justify-content:flex-start;align-items:center;gap:12px}
 .scroll-arrow{display:inline-block;animation:arrow-bob 1.9s var(--ease-in-out) infinite}
 @keyframes arrow-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(4px)}}
@@ -211,6 +215,8 @@ html[data-boot="play"] .boot{display:grid}
 /* Failsafe: never block the site if the script dies mid-intro (longest real run is ~10s). */
 html[data-boot="play"] .boot{animation:boot-failsafe 1ms 12s forwards}
 @keyframes boot-failsafe{to{visibility:hidden;opacity:0}}
+/* A skip always wins within a second, even if the page's JavaScript is still loading or busy. */
+html[data-boot="play"][data-boot-skip] .boot{animation:boot-failsafe 1ms 1.1s forwards}
 @media (scripting: none){.boot{display:none!important}}
 /* Content stays hidden until the timeline owns it, so nothing flashes before it animates. */
 .boot:not(.is-live) .boot-center,.boot:not(.is-live) .boot-log,.boot:not(.is-live) .boot-meter{opacity:0}

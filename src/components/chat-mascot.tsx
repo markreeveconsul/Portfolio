@@ -3,6 +3,15 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { assistantBaseUrl } from "@/lib/assistant";
+import { useAfterBoot } from "@/lib/motion";
+
+/** Throws a friendly error when no backend is configured for this deployment. */
+function requireAssistant() {
+  const base = assistantBaseUrl();
+  if (!base) throw new Error("The assistant isn’t connected on this site yet. You can still reach me through the contact form.");
+  return base;
+}
 
 const RobotHead = dynamic(
   () => import("robot-heads").then((module) => module.RobotHead),
@@ -56,7 +65,6 @@ type LeadForm = {
   timeline: string;
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_ASSISTANT_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 const emptyLead: LeadForm = {
   name: "",
   email: "",
@@ -92,6 +100,8 @@ export function ChatMascot() {
   const [open, setOpen] = useState(false);
   const [mascotState, setMascotState] = useState<RobotState>("sleeping");
   const [reducedMotion, setReducedMotion] = useState(false);
+  // The robot is its own WebGL scene; load it after the boot and the 3D card.
+  const robotReady = useAfterBoot(1800);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -168,7 +178,7 @@ export function ChatMascot() {
     try {
       await new Promise((resolve) => setTimeout(resolve, reducedMotion ? 0 : 360));
       if (openRef.current) setMascotState("thinking");
-      const response = await fetch(`${API_BASE}/api/chat`, {
+      const response = await fetch(`${requireAssistant()}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: requestMessages }),
@@ -252,7 +262,7 @@ export function ChatMascot() {
     setLeadError("");
     setStateFor("working");
     try {
-      const response = await fetch(`${API_BASE}/api/leads/confirm`, {
+      const response = await fetch(`${requireAssistant()}/api/leads/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...lead, consent_to_email: true, confirmed: true }),
@@ -410,7 +420,7 @@ export function ChatMascot() {
         onClick={togglePanel}
       >
         <span className="mascot-aura" aria-hidden="true" />
-        <RobotHead
+        {!robotReady ? <span className="mascot-loading" aria-hidden="true" /> : <RobotHead
           shape="rectangle"
           state={mascotState}
           size={104}
@@ -423,7 +433,7 @@ export function ChatMascot() {
           paused={reducedMotion}
           aria-hidden="true"
           className="chat-mascot-canvas"
-        />
+        />}
       </button>
     </div>
   );

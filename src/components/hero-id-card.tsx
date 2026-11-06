@@ -4,6 +4,10 @@ import dynamic from "next/dynamic";
 import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "react";
 import { getIdCardFaceCanvases, type CardFaceCanvases } from "@/components/id-card-textures";
 import { idCardCopy } from "@/data/id-card-design";
+import { useAfterBoot } from "@/lib/motion";
+
+/** The WebGL card mounts this long after the boot ends, once the hero headline and copy have started animating. */
+const SCENE_DELAY_MS = 900;
 
 // Encoding a 1520×2360 canvas is expensive. Do it once per canvas, off the
 // render path (toBlob is async), and reuse the object URL on every re-render.
@@ -66,6 +70,7 @@ export function HeroIdCard() {
   const [textureError, setTextureError] = useState(false);
   const [fallbackMode, setFallbackMode] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const sceneReady = useAfterBoot(SCENE_DELAY_MS);
 
   useEffect(() => {
     let active = true;
@@ -89,5 +94,7 @@ export function HeroIdCard() {
   if (!faces) return <CssIdCard faces={null} reducedMotion={reducedMotion} />;
   const cssFallback = <CssIdCard faces={faces} reducedMotion={reducedMotion} />;
   if (fallbackMode || textureError) return cssFallback;
+  // Hold the WebGL scene (shader compile, environment map) until the intro and hero entrance have the main thread.
+  if (!sceneReady) return <div className="hero-card-stage hero-card-pending" aria-hidden="true" />;
   return <SceneErrorBoundary fallback={cssFallback}><InteractiveScene faces={faces} /></SceneErrorBoundary>;
 }

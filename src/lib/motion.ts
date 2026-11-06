@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -56,6 +57,32 @@ export function afterBoot(callback: () => void) {
   const onDone = () => callback();
   window.addEventListener(BOOT_DONE_EVENT, onDone, { once: true });
   return () => window.removeEventListener(BOOT_DONE_EVENT, onDone);
+}
+
+/**
+ * True once the boot intro is over, plus `delayMs`, plus an idle moment. Use it
+ * to hold back heavy work (WebGL scenes, canvas loops) so it never competes
+ * with the intro or the hero entrance for main-thread time. Starts false on the
+ * server and the first client render, so hydration always matches.
+ */
+export function useAfterBoot(delayMs = 0) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let timer = 0;
+    let idle = 0;
+    const cancel = afterBoot(() => {
+      timer = window.setTimeout(() => {
+        if ("requestIdleCallback" in window) idle = window.requestIdleCallback(() => setReady(true), { timeout: 700 });
+        else setReady(true);
+      }, delayMs);
+    });
+    return () => {
+      cancel();
+      window.clearTimeout(timer);
+      if (idle && "cancelIdleCallback" in window) window.cancelIdleCallback(idle);
+    };
+  }, [delayMs]);
+  return ready;
 }
 
 // Signature easing: fast in, gentle settle.
