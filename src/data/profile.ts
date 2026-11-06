@@ -1,6 +1,8 @@
 export const profile = {
-  name: "Your Name",
-  firstName: "Your Name",
+  name: "Mark Reeve Consul",
+  firstName: "Mark",
+  // Shown as the navbar logo; matches the domain printed on the ID card.
+  domain: "consul.dev",
   role: "IT Student · Developer",
   roleLineOne: "IT student.",
   roleLineTwo: "Developer.",

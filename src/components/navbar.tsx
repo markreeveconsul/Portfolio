@@ -59,7 +59,7 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [open]);
 
-  const logo = <>{profile.firstName.toLowerCase().replaceAll(" ", "")}.dev<span>_</span></>;
+  const logo = <>{profile.domain}<span>_</span></>;
 
   return <div className="navbar-wrap"><nav ref={navRef} className="navbar" aria-label="Main navigation">
     {onHome ? <a className="logo" href="#home" aria-label={`${profile.firstName}, home`}>{logo}</a> : <Link className="logo" href="/" aria-label={`${profile.firstName}, home`}>{logo}</Link>}

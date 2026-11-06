@@ -12,14 +12,14 @@ import { profile } from "@/data/profile";
 import { projects } from "@/data/projects";
 import { services } from "@/data/services";
 import { certificates } from "@/data/certificates";
-import { highlights } from "@/data/highlights";
+import { techStackItems } from "@/data/techstack";
 import { ChatMascot } from "@/components/chat-mascot";
 
 const processSteps = ["Talk", "Design", "Build", "Revise", "Deliver"];
 
 function Marquee() {
   // Two identical copies so translateX(-50%) loops without a seam.
-  const row = (copy: string) => highlights.map((item, index) => <span className={`marquee-item${index % 3 === 0 ? " is-solid" : ""}`} key={`${copy}-${item}`}>{item}<i>✦</i></span>);
+  const row = (copy: string) => techStackItems.map((item, index) => <span className={`marquee-item${index % 3 === 0 ? " is-solid" : ""}`} key={`${copy}-${item}`}>{item}<i>✦</i></span>);
   return <div className="marquee" aria-hidden="true">
     <div className="marquee-track">{row("a")}{row("b")}</div>
   </div>;

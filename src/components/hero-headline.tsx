@@ -37,6 +37,14 @@ export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: s
 
     heading.classList.add("is-decoding");
     reveal();
+    const finish = () => {
+      cancelAnimationFrame(frame);
+      lines.forEach((line, index) => { line.textContent = finals[index]; });
+      heading.classList.remove("is-decoding");
+      heading.classList.add("is-decoded");
+    };
+    // Watchdog: never leave scrambled glyphs on screen if frames stop arriving.
+    const watchdog = window.setTimeout(finish, 3500);
     const render = (now: number) => {
       if (!startTime) startTime = now;
       const elapsed = now - startTime - startDelay;
@@ -56,14 +64,15 @@ export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: s
         lineOffset += text.length * charStagger + lineGap;
       });
       if (done) {
-        heading.classList.remove("is-decoding");
-        heading.classList.add("is-decoded");
+        window.clearTimeout(watchdog);
+        finish();
         return;
       }
       frame = requestAnimationFrame(render);
     };
     frame = requestAnimationFrame(render);
     return () => {
+      window.clearTimeout(watchdog);
       cancelAnimationFrame(frame);
       lines.forEach((line, index) => { line.textContent = finals[index]; });
       heading.classList.remove("is-decoding");

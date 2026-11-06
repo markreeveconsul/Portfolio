@@ -26,7 +26,11 @@ export function HeroMotion() {
       const { motionOk, desktop } = context.conditions as { motionOk: boolean; desktop: boolean };
       if (!motionOk || performance.now() > LATE_START_MS) { show(items); return; }
 
-      gsap.timeline({ delay: 0.35 })
+      const intro = gsap.timeline({ delay: 0.35 });
+      // Watchdog: if frames stall (a busy main thread while the 3D card loads),
+      // finish the entrance on a timer so the copy can never stay hidden.
+      const watchdog = window.setTimeout(() => { if (intro.progress() < 1) intro.progress(1); show(items); }, 3200);
+      intro
         .fromTo(items, { autoAlpha: 0, y: 22, filter: "blur(6px)" }, {
           autoAlpha: 1,
           y: 0,
@@ -51,7 +55,7 @@ export function HeroMotion() {
         exit.to(heroScrollState, { progress: 1, ease: "none" }, 0);
         if (card) exit.to(card, { autoAlpha: 0.35, ease: "none" }, 0);
       }
-      return () => { heroScrollState.progress = 0; };
+      return () => { window.clearTimeout(watchdog); heroScrollState.progress = 0; };
     });
 
     return () => mm.revert();
