@@ -233,7 +233,7 @@ html.lenis{scroll-behavior:auto}
 .arch-wordmark{display:inline-flex;align-items:baseline;line-height:1;white-space:nowrap}
 .arch-letter{display:inline-block;overflow:hidden;padding:.08em 0 .06em}
 .arch-letter>span{display:inline-block}
-.arch-glyph{height:.67em;height:1.04cap;aspect-ratio:24/22.79;margin-left:.08em;padding:0;overflow:visible}
+.arch-glyph{height:.75em;aspect-ratio:24/22.79;margin-left:.08em;padding:0;overflow:visible}
 .arch-glyph svg{display:block;width:100%;height:100%;overflow:visible}
 .arch-glyph path{fill:currentColor}
 
@@ -267,7 +267,7 @@ html[data-boot-skip] .boot{animation:boot-wipe .7s var(--ease-in-out) forwards}
 @keyframes boot-breathe{50%{transform:scale(1.012)}}
 
 /* Wordmark. Base styles are the final state; the intro animations supply the "from" states. */
-.boot-word{font:800 clamp(72px,14vw,190px)/1 var(--display);letter-spacing:-.04em}
+.boot-word{font:800 clamp(56px,13vw,190px)/1 var(--display);letter-spacing:-.04em}
 .boot-word .arch-letter>span{color:transparent;background:linear-gradient(100deg,#ECEAE4 0,#ECEAE4 40%,#fff 47%,#A8E6F0 51%,#E9B8F0 55%,#ECEAE4 62%,#ECEAE4 100%);background-size:300% 100%;background-position:0 0;-webkit-background-clip:text;background-clip:text;animation:boot-letter-in .85s var(--ease-out) 1.85s both,boot-sheen 1.3s var(--ease-in-out) 2.6s both}
 .boot-word .arch-letter:nth-child(3)>span{animation-delay:1.94s,2.72s}
 .boot-word .arch-letter:nth-child(4)>span{animation-delay:2.03s,2.78s}
@@ -655,9 +655,7 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
   .chat-heading-icon::after{display:none}
 }
 
-/* Force arrows to render as text not emoji on iOS. */
-.button span[aria-hidden],
-.details-link span,
-.back-link span,
-.social-link span:last-child,
-.case-next-title span{font-variant-emoji:text;font-family:inherit}
+/* Force arrow/symbol characters to render as text not emoji on iOS Safari.
+   Targets all decorative spans (aria-hidden) and navigation arrows. */
+[aria-hidden="true"]{font-variant-emoji:text;-webkit-text-stroke:0}
+.scroll-arrow,.case-next-title span,.lead-back,.lightbox-nav{font-variant-emoji:text}

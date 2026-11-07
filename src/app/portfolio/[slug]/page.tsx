@@ -66,8 +66,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none"><h1 className="detail-title">{project.name}</h1></ViewTransition>
         <p className="detail-summary">{project.summary}</p>
         <div className="detail-actions">
-          {project.demoUrl && <a className="button button-primary" href={project.demoUrl} target="_blank" rel="noreferrer" data-magnetic="">Live demo <span aria-hidden="true">↗</span></a>}
-          {project.githubUrl && <a className="button button-outline" href={project.githubUrl} target="_blank" rel="noreferrer" data-magnetic="">Source code <span aria-hidden="true">↗</span></a>}
+          {project.demoUrl && <a className="button button-primary" href={project.demoUrl} target="_blank" rel="noreferrer" data-magnetic="">Live demo <span aria-hidden="true">&#x2197;&#xFE0E;</span></a>}
+          {project.githubUrl && <a className="button button-outline" href={project.githubUrl} target="_blank" rel="noreferrer" data-magnetic="">Source code <span aria-hidden="true">&#x2197;&#xFE0E;</span></a>}
         </div>
       </section>
 

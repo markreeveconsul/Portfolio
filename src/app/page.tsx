@@ -54,7 +54,7 @@ export default function HomePage() {
 
       <section className="section" id="about">
         <div className="about-grid">
-          <div className="about-copy"><p className="section-index" data-reveal="fade">02 / About</p><h2 data-reveal="lines">{profile.name}</h2><p data-reveal="fade">{profile.bio}</p>{profile.quote && <blockquote className="about-quote" data-reveal="fade">“{profile.quote}”</blockquote>}<div className="about-buttons" data-reveal="fade"><a className="button button-outline" href="#portfolio" data-magnetic="">Explore my work <span aria-hidden="true">↘</span></a></div></div>
+          <div className="about-copy"><p className="section-index" data-reveal="fade">02 / About</p><h2 data-reveal="lines">{profile.name}</h2><p data-reveal="fade">{profile.bio}</p>{profile.quote && <blockquote className="about-quote" data-reveal="fade">“{profile.quote}”</blockquote>}<div className="about-buttons" data-reveal="fade"><a className="button button-outline" href="#portfolio" data-magnetic="">Explore my work <span aria-hidden="true">&#x2198;&#xFE0E;</span></a></div></div>
           <div className="profile-side" data-reveal="stagger"><div className="portrait-ring"><Image src="/images/about-pic.jpg" alt="Portrait of Mark Reeve Consul" width={640} height={640} /></div><div className="stats">
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number" data-count={projects.length}>{statValue(projects.length)}</span><span className="stat-label">Projects</span></PortfolioJump>
             <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number" data-count={certificates.length}>{statValue(certificates.length)}</span><span className="stat-label">Certificates</span></PortfolioJump>
@@ -86,9 +86,9 @@ export default function HomePage() {
         <div className="section-heading"><p className="section-index" data-reveal="fade">06 / Contact</p><h2 data-reveal="lines">Let’s build something<br />worth sharing.</h2><p data-reveal="fade">Have a project, opportunity, or collaboration in mind? Reach out.</p></div>
         <div className="contact-grid is-single" data-reveal="stagger">
           <section className="contact-panel glass-card" data-spotlight=""><h3>Connect with me</h3><p>Email me directly, browse what I’m building on GitHub, or ask the chat assistant in the corner.</p><div className="social-list">
-            {profile.github.startsWith("https://") ? <a className="social-link" href={profile.github} target="_blank" rel="noreferrer"><span>GitHub</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>GitHub</span><span>Link coming soon</span></div>}
-            {profile.linkedin.startsWith("https://") ? <a className="social-link" href={profile.linkedin} target="_blank" rel="noreferrer"><span>LinkedIn</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>LinkedIn</span><span>Link coming soon</span></div>}
-            {profile.email.includes("@") ? <a className="social-link" href={`mailto:${profile.email}`}><span>Email</span><span>↗</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>Email</span><span>Address coming soon</span></div>}
+            {profile.github.startsWith("https://") ? <a className="social-link" href={profile.github} target="_blank" rel="noreferrer"><span>GitHub</span><span>&#x2197;&#xFE0E;</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>GitHub</span><span>Link coming soon</span></div>}
+            {profile.linkedin.startsWith("https://") ? <a className="social-link" href={profile.linkedin} target="_blank" rel="noreferrer"><span>LinkedIn</span><span>&#x2197;&#xFE0E;</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>LinkedIn</span><span>Link coming soon</span></div>}
+            {profile.email.includes("@") ? <a className="social-link" href={`mailto:${profile.email}`}><span>Email</span><span>&#x2197;&#xFE0E;</span></a> : <div className="social-link social-link-placeholder" aria-disabled="true"><span>Email</span><span>Address coming soon</span></div>}
           </div></section>
         </div>
       </section>
