@@ -567,3 +567,46 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
 
 /* Four projects: the last card gets the full row instead of sitting alone at a third. */
 @media(min-width:901px){.project-card:nth-child(4):last-child{grid-column:1/-1}}
+
+/* =====================================================================
+   Chat panel polish: tie the assistant to the site's graphite/platinum +
+   iridescent palette, give the header identity, and make the bubbles read
+   clearly. Overrides the base rules in globals.css (loaded earlier).
+   ===================================================================== */
+.chat-panel{border-color:rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(18,20,27,.98),rgba(11,12,16,.98));box-shadow:0 26px 90px rgba(0,0,0,.6),0 0 0 1px rgba(168,230,240,.05),0 0 60px rgba(var(--accent-rgb),.08)}
+
+/* Header: an iridescent hairline under it and a soft glow behind the avatar. */
+.chat-panel-header{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent)}
+.chat-panel-header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--irid);opacity:.5}
+.chat-heading-icon{position:relative;border:1px solid rgba(255,255,255,.08);background:radial-gradient(circle at 50% 40%,rgba(var(--accent-rgb),.22),rgba(255,255,255,.03) 70%)}
+.chat-heading-copy h2{letter-spacing:-.03em}
+.assistant-status-dot{background:var(--muted)}
+.status-thinking,.status-searching,.status-listening,.status-speaking,.status-working,.status-happy{background:var(--ice);box-shadow:0 0 11px rgba(168,230,240,.6)}
+.chat-close{border-color:var(--line);transition:background-color .18s,border-color .18s,transform .18s}
+.chat-close:hover{border-color:rgba(var(--accent-rgb),.5);transform:rotate(90deg)}
+
+/* Bubbles: softer assistant, clearly accented user, each enters with a gentle rise. */
+.chat-bubble{border-color:rgba(255,255,255,.06);animation:chat-bubble-in .35s var(--ease-out) both}
+@keyframes chat-bubble-in{from{opacity:0;transform:translateY(8px)}}
+.assistant-bubble{background:rgba(255,255,255,.05);border-top-left-radius:5px}
+.user-bubble{background:linear-gradient(135deg,rgba(var(--accent-rgb),.26),rgba(168,230,240,.16));border-color:rgba(var(--accent-rgb),.3);color:#f3f4ff;border-top-right-radius:5px}
+
+/* Quick-question chips: match the hero tech-chips. */
+.chat-quick-questions button{border-color:rgba(255,255,255,.1);background:rgba(var(--accent-rgb),.06);transition:border-color .18s,background-color .18s,transform .18s}
+.chat-quick-questions button:hover,.chat-quick-questions button:focus-visible{border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.14);transform:translateY(-1px)}
+
+/* Compose bar: accent focus glow and an iridescent send button. */
+.chat-compose{transition:border-color .2s,box-shadow .2s}
+.chat-compose:focus-within{border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.12)}
+/* Send button: platinum at rest, fills iridescent on hover. Dark arrow both ways. */
+.chat-send{background:var(--platinum);color:#0b0c10;transition:transform .15s,background-image .2s}
+.chat-send:not(:disabled):hover{transform:translateY(-1px);background-image:var(--irid)}
+
+/* Inquiry offer button already uses accent vars; align it to the token system. */
+.chat-inquiry-offer{border-color:rgba(var(--accent-rgb),.4);background:rgba(var(--accent-rgb),.12);color:#e9ebff}
+.chat-inquiry-offer:hover{background:rgba(var(--accent-rgb),.22);border-color:rgba(var(--accent-rgb),.6)}
+
+/* Thinking dots in the site accent. */
+.chat-thinking span{background:var(--ice)}
+
+@media(prefers-reduced-motion:reduce){.chat-bubble{animation:none}.chat-close:hover{transform:none}}
