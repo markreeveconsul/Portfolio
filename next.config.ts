@@ -6,6 +6,15 @@ const nextConfig: NextConfig = {
   turbopack: { root: process.cwd() },
   images: {
     unoptimized: true,
+    domains: [],
+  },
+  async headers() {
+    return [
+      {
+        source: "/images/:path*",
+        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+      },
+    ];
   },
 };
 

@@ -83,8 +83,8 @@ export function Navbar({ onHome = true }: { onHome?: boolean }) {
       <span className="palette-trigger-icon" aria-hidden="true">&gt;_</span><kbd aria-hidden="true">{shortcut}</kbd>
     </button>
     {onHome
-      ? <a className="button quote-link" href="#contact" data-magnetic="">Get a quote <span aria-hidden="true">↗</span></a>
-      : <Link className="button quote-link" href={{ pathname: "/", hash: "contact" }} data-magnetic="">Get a quote <span aria-hidden="true">↗</span></Link>}
+      ? <a className="button quote-link" href="#contact" data-magnetic="">Get a quote <span aria-hidden="true">&#x2197;&#xFE0E;</span></a>
+      : <Link className="button quote-link" href={{ pathname: "/", hash: "contact" }} data-magnetic="">Get a quote <span aria-hidden="true">&#x2197;&#xFE0E;</span></Link>}
     <button ref={menuButtonRef} className="menu-toggle" type="button" aria-label={open ? "Close navigation menu" : "Open navigation menu"} aria-expanded={open} aria-controls="main-menu" onClick={() => setOpen((value) => !value)}><span className={`menu-icon${open ? " is-open" : ""}`} aria-hidden="true"><i /><i /></span></button>
     <span ref={progressRef} className="nav-progress" aria-hidden="true" />
   </nav></div>;
