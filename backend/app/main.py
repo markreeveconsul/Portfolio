@@ -51,8 +51,8 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 KNOWLEDGE_BASE = [
     {
         "id": "profile",
-        "keywords": "owner name who mark reeve consul role about student developer it second year full stack backend networking arch linux availability freelance internship job hire",
-        "content": "The portfolio owner is Mark Reeve Consul, a 2nd-year IT student and full stack developer focused on backend and networking. He builds projects for real-world problems, uses Arch Linux, and is available for freelance work and open to internship and job opportunities.",
+        "keywords": "owner name who mark reeve consul role about student developer it second year cebu websites tools junior learning availability internship collab opportunities",
+        "content": "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools, mostly stuff he wanted to exist. He is junior and still learning, and open to internships, collabs, and other opportunities where he can get real experience.",
     },
     {
         "id": "contact",

@@ -75,26 +75,26 @@ export const idCardPalette = {
 
 export const idCardCopy = {
   frontDomain: "consul.dev",
-  availability: "Open for freelance",
+  availability: "Open to opportunities",
   nameLines: ["Mark", "Reeve", "Consul"],
-  frontRole: "IT student · Full stack dev",
-  frontSkills: ["Backend", "Networking"],
+  frontRole: "IT student · Developer",
+  frontSkills: ["Websites", "Small tools"],
   backHeading: "system profile",
   terminalUser: "mark@consul",
   terminalCommand: ":~$ whoami",
   fullName: "Mark Reeve Consul",
   backRows: [
-    { label: "role", value: "Full stack developer" },
-    { label: "focus", value: "Backend · Networking" },
-    { label: "building", value: "Projects for real-world problems" },
+    { label: "role", value: "IT student · Developer" },
+    { label: "based in", value: "Cebu, Philippines" },
+    { label: "building", value: "Websites & small tools" },
     { label: "os", value: "Arch Linux (btw)" },
     { label: "off-hours", value: "Gaming between builds" },
-    { label: "status", value: "Open for freelance" },
+    { label: "status", value: "Open to opportunities" },
   ],
   issued: "Issued Nov 2026 · consul.dev",
   qrCaption: ["Scan to see", "my projects"],
   interactionHint: "Drag to swing · Click to flip · Foil thread catches the light",
-  lanyardText: "CONSUL.DEV · BACKEND · NETWORKING · CONSUL.DEV · BACKEND · NETWORKING · CONSUL.DEV · BACKEND · NETWORKING",
+  lanyardText: "CONSUL.DEV · WEBSITES · SMALL TOOLS · CONSUL.DEV · WEBSITES · SMALL TOOLS · CONSUL.DEV · WEBSITES · SMALL TOOLS",
 } as const;
 
 // Arch Linux logo path (24×24 viewBox), shared by the ID card, boot intro, and wordmarks.
