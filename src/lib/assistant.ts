@@ -2,7 +2,7 @@
 // inlined at build time. Without it, the local default is only used when the
 // site itself runs on localhost, so production visitors are never pointed at
 // their own machine.
-const LOCAL_DEFAULT = "http://127.0.0.1:8000";
+const LOCAL_DEFAULT = "http://127.0.0.1:8001";
 
 export function assistantBaseUrl(): string | null {
   const configured = process.env.NEXT_PUBLIC_ASSISTANT_API_URL?.trim();
