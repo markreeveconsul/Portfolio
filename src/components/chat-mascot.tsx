@@ -29,7 +29,7 @@ type RobotState =
   | "error"
   | "sleeping";
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user" | "assistant"; content: string; offerInquiry?: boolean };
 
 function completedConversation(source: ChatMessage[]): ChatMessage[] {
   const turns: ChatMessage[] = [];
@@ -218,8 +218,8 @@ export function ChatMascot() {
     setMessages((current) => [...current, userMessage]);
     const localAnswer = localAnswerFor(content);
     if (localAnswer) {
-      setMessages((current) => [...current, { role: "assistant", content: localAnswer.answer }]);
-      if (localAnswer.openInquiry) setLeadOpen(true);
+      // Offer the inquiry as a button under the reply; open the form only if the visitor chooses to.
+      setMessages((current) => [...current, { role: "assistant", content: localAnswer.answer, offerInquiry: localAnswer.openInquiry }]);
       setStateFor("speaking", 1800);
       return;
     }
@@ -229,6 +229,11 @@ export function ChatMascot() {
   function retryLastMessage() {
     if (!failedPrompt || busy) return;
     void askAssistant(failedPrompt);
+  }
+
+  function openInquiryFromChat() {
+    setLeadOpen(true);
+    setStateFor("idle");
   }
 
   function startNewChat() {
@@ -337,9 +342,16 @@ export function ChatMascot() {
                     </div>
                   )}
                   {messages.map((message, index) => (
-                    <p className={`chat-bubble ${message.role === "user" ? "user-bubble" : "assistant-bubble"}`} key={`${index}-${message.role}`}>
-                      {message.content}
-                    </p>
+                    <div className="chat-bubble-row" key={`${index}-${message.role}`}>
+                      <p className={`chat-bubble ${message.role === "user" ? "user-bubble" : "assistant-bubble"}`}>
+                        {message.content}
+                      </p>
+                      {message.offerInquiry && !leadOpen && (
+                        <button className="chat-inquiry-offer" type="button" onClick={openInquiryFromChat}>
+                          Start an inquiry <span aria-hidden="true">→</span>
+                        </button>
+                      )}
+                    </div>
                   ))}
                   {busy && <p className="chat-bubble assistant-bubble chat-thinking" aria-label="Assistant is thinking"><span /><span /><span /></p>}
                   {chatError && <div className="chat-error-wrap" role="alert"><p className="chat-error">{chatError}</p>{failedPrompt && <button className="chat-retry" type="button" onClick={retryLastMessage} disabled={busy}>Try again</button>}</div>}
