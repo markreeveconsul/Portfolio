@@ -44,7 +44,7 @@ export default function HomePage() {
           <p className="cursor-line" data-hero-reveal="">2ND-YEAR IT STUDENT&nbsp; · &nbsp;DEVELOPER</p>
           <p className="hero-description" data-hero-reveal="">{profile.bio}</p>
           <div className="tech-chips" aria-label="Selected technologies" data-hero-reveal=""><span className="chip">Research projects</span><span className="chip">Capstone projects</span><span className="chip">AI projects</span><span className="chip">Web apps</span></div>
-          <div className="hero-actions" data-hero-reveal=""><a className="button button-primary" href="#portfolio" data-magnetic="">See my projects <span aria-hidden="true">↘</span></a><a className="button button-outline" href="#contact" data-magnetic="">Hire me <span aria-hidden="true">↗</span></a></div>
+          <div className="hero-actions" data-hero-reveal=""><a className="button button-primary" href="#portfolio" data-magnetic="">See my projects <span aria-hidden="true">&#x2198;&#xFE0E;</span></a><a className="button button-outline" href="#contact" data-magnetic="">Hire me <span aria-hidden="true">&#x2197;&#xFE0E;</span></a></div>
         </div>
         <div className="hero-card-shell"><HeroIdCard /></div>
         <div className="hero-scroll" aria-hidden="true"><span>SCROLL TO EXPLORE</span><span className="scroll-arrow">↓</span></div>

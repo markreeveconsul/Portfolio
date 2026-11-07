@@ -202,9 +202,15 @@ html.lenis{scroll-behavior:auto}
 ::view-transition-new(site-header){animation:none}
 
 /* ---------- Small screens ---------- */
+/* Boot wordmark + footer: clamp aggressively so MARK never overflows on phones. */
 @media(max-width:680px){
-  .marquee-item{font-size:clamp(22px,7vw,30px)}
-  .footer-big{font-size:clamp(64px,22vw,120px)}
+  .boot-word{font-size:clamp(52px,18vw,120px)}
+  .footer-big{font-size:clamp(52px,15vw,120px)}
+  .marquee-item{font-size:clamp(20px,7vw,32px)}
+}
+@media(max-width:480px){
+  .boot-word{font-size:clamp(44px,15vw,80px)}
+  .footer-big{font-size:clamp(44px,15vw,80px)}
 }
 
 /* ---------- Reduced motion ---------- */
@@ -648,3 +654,10 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
   .chat-heading-icon::after,.chat-thinking span,.chat-quick-questions{animation:none}
   .chat-heading-icon::after{display:none}
 }
+
+/* Force arrows to render as text not emoji on iOS. */
+.button span[aria-hidden],
+.details-link span,
+.back-link span,
+.social-link span:last-child,
+.case-next-title span{font-variant-emoji:text;font-family:inherit}

@@ -29,6 +29,7 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: n
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error(`Could not load card image: ${src}`));
     image.src = src;
