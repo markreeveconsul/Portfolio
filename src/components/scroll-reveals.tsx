@@ -91,12 +91,16 @@ function setupReveals() {
   const trigger = (element: Element) => ({ trigger: element, start: "top 86%", once: true });
 
   ctx.add(() => {
+    // If a reveal is interrupted (e.g. the hover tilt takes over the transform mid-way),
+    // snap the content fully visible instead of leaving it half-transparent.
+    const settle = (targets: Element | HTMLCollection) => () => gsap.set(targets, { autoAlpha: 1 });
+
     document.querySelectorAll<HTMLElement>("[data-reveal='fade']").forEach((element) => {
-      gsap.from(element, { autoAlpha: 0, y: 28, duration: 1, ease: ease.out, scrollTrigger: trigger(element) });
+      gsap.from(element, { autoAlpha: 0, y: 28, duration: 1, ease: ease.out, clearProps: "opacity,visibility", onInterrupt: settle(element), scrollTrigger: trigger(element) });
     });
 
     document.querySelectorAll<HTMLElement>("[data-reveal='stagger']").forEach((group) => {
-      gsap.from(group.children, { autoAlpha: 0, y: 36, duration: 1, ease: ease.out, stagger: 0.09, scrollTrigger: trigger(group) });
+      gsap.from(group.children, { autoAlpha: 0, y: 36, duration: 1, ease: ease.out, stagger: 0.09, clearProps: "opacity,visibility", onInterrupt: settle(group.children), scrollTrigger: trigger(group) });
     });
 
     // Dense grids: one class toggle; CSS staggers the cells by their --i index.
