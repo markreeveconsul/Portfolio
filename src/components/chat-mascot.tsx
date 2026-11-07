@@ -58,9 +58,9 @@ function localAnswerFor(rawQuestion: string): { answer: string; openInquiry?: bo
   if (/\b(portfolio studio|folio)\b/.test(question)) return { answer: "Portfolio Studio is a completed full stack web app where students build a private portfolio from five templates, using React, TypeScript, Vite, and Supabase. It’s live at myfolio-studio.vercel.app." };
   if (/\b(thesa)\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further details haven’t been confirmed yet." };
   if (/\b(netpath)\b/.test(question)) return { answer: "NetPath is an in-progress web app for learning networking, with a simulation sandbox. Its specific topics are still to be confirmed." };
-  if (/\b(skill|skills|good at|strength|stack|technolog|language)\b/.test(question)) return { answer: "Mark is a full stack developer focused on backend and networking. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux." };
-  if (/\b(who|about|yourself|mark)\b/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student and full stack developer focused on backend and networking. He builds projects for real-world problems and is open to freelance, internships, and jobs." };
-  if (/\b(freelance|available|availability|internship|job|hire)\b/.test(question)) return { answer: "Mark is available for freelance work and open to internship and job opportunities." };
+  if (/\b(skill|skills|good at|strength|stack|technolog|language)\b/.test(question)) return { answer: "Mark builds websites and small tools. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux." };
+  if (/\b(who|about|yourself|mark)\b/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools. He's junior, still learning, and open to internships, collabs, and opportunities." };
+  if (/\b(freelance|available|availability|internship|job|hire|opportunit|collab)\b/.test(question)) return { answer: "Mark is open to internships, collabs, and other opportunities where he can get real experience." };
   if (/\b(service|services|offer|offers|pricing|price|cost|timeline|budget|build)\b/.test(question)) return { answer: "Mark builds research projects, capstone projects, and smaller web apps and tools. Prices and timelines are discussed per project." };
   if (/\b(project|projects|portfolio|featured|work)\b/.test(question)) return { answer: "Mark’s projects are FORGE (completed), Portfolio Studio (completed), Thesa (in progress), and NetPath (in progress)." };
   return null;
@@ -88,7 +88,7 @@ const QUICK_ANSWERS = [
   },
   {
     question: "What is Mark good at?",
-    answer: "Mark is a full stack developer focused on backend and networking. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux.",
+    answer: "Mark builds websites and small tools. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux.",
   },
   {
     question: "What is FORGE?",
@@ -328,7 +328,7 @@ export function ChatMascot() {
             {!leadOpen ? (
               <>
                 <div className="chat-transcript" aria-live="polite" aria-label="Conversation">
-                  <p className="chat-bubble assistant-bubble">Hi! Ask me about the projects, or tell me what you’re looking to build.</p>
+                  <p className="chat-bubble assistant-bubble chat-greeting">Hey, welcome to Mark’s portfolio. Ask me about his projects, skills, or background, or tell me what you’re looking to build.</p>
                   {messages.length === 0 && (
                     <div className="chat-quick-questions" aria-label="Suggested questions with instant answers">
                       <p>Quick questions <span>Instant answers</span></p>

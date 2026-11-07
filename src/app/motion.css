@@ -610,3 +610,41 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
 .chat-thinking span{background:var(--ice)}
 
 @media(prefers-reduced-motion:reduce){.chat-bubble{animation:none}.chat-close:hover{transform:none}}
+
+/* ---------- Chat panel: extra polish ---------- */
+
+/* Faint grid + accent glows behind the transcript, matching the site background. */
+.chat-content{position:relative;isolation:isolate}
+.chat-content::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(circle at 18% 12%,rgba(var(--accent-rgb),.08),transparent 42%),radial-gradient(circle at 88% 92%,rgba(168,230,240,.06),transparent 46%),linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:auto,auto,30px 30px,30px 30px;-webkit-mask-image:linear-gradient(180deg,#000,#000 70%,transparent);mask-image:linear-gradient(180deg,#000,#000 70%,transparent);opacity:.7}
+
+/* Roomier transcript and a thin accent-tinted scrollbar. */
+.chat-transcript{gap:11px;padding:6px 4px 12px;scrollbar-color:rgba(var(--accent-rgb),.35) transparent}
+.chat-transcript::-webkit-scrollbar{width:7px}
+.chat-transcript::-webkit-scrollbar-thumb{background:rgba(var(--accent-rgb),.3);border-radius:99px}
+.chat-transcript::-webkit-scrollbar-thumb:hover{background:rgba(var(--accent-rgb),.5)}
+
+/* Avatar: soft "active" pulse ring so the assistant feels present. */
+.chat-heading-icon::after{content:"";position:absolute;inset:-3px;border-radius:inherit;border:1px solid rgba(var(--accent-rgb),.4);opacity:0;animation:chat-avatar-pulse 3.2s var(--ease-out) infinite}
+@keyframes chat-avatar-pulse{0%{opacity:.5;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.18)}}
+
+/* Typing indicator: a travelling shimmer under the three dots, plus a soft glow. */
+.chat-thinking{position:relative;padding:12px 14px}
+.chat-thinking span{box-shadow:0 0 8px rgba(168,230,240,.5);animation:chat-dot 1.1s ease-in-out infinite alternate,chat-dot-glow 1.1s ease-in-out infinite alternate}
+@keyframes chat-dot-glow{to{box-shadow:0 0 12px rgba(233,184,240,.7)}}
+
+/* Quick-question chips rise in together when the chat opens. */
+.chat-quick-questions{animation:chat-bubble-in .5s var(--ease-out) .1s both}
+.chat-quick-questions>p span{color:var(--ice)}
+
+/* The greeting reads as a welcome: a soft accent wash and a left accent edge. */
+.chat-greeting{position:relative;background:linear-gradient(90deg,rgba(var(--accent-rgb),.1),rgba(255,255,255,.05) 45%)}
+.chat-greeting::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:linear-gradient(180deg,var(--ice),var(--lilac))}
+
+/* New-chat button: match the token system. */
+.chat-new{border-color:var(--line);color:var(--body);transition:border-color .18s,color .18s,background-color .18s}
+.chat-new:hover:not(:disabled){border-color:rgba(var(--accent-rgb),.5);color:var(--text);background:rgba(var(--accent-rgb),.08)}
+
+@media(prefers-reduced-motion:reduce){
+  .chat-heading-icon::after,.chat-thinking span,.chat-quick-questions{animation:none}
+  .chat-heading-icon::after{display:none}
+}
