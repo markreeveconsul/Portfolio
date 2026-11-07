@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   outputFileTracingRoot: process.cwd(),
   turbopack: { root: process.cwd() },
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
