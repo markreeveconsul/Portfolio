@@ -55,7 +55,7 @@ export default function HomePage() {
       <section className="section" id="about">
         <div className="about-grid">
           <div className="about-copy"><p className="section-index" data-reveal="fade">02 / About</p><h2 data-reveal="lines">{profile.name}</h2><p data-reveal="fade">{profile.bio}</p>{profile.quote && <blockquote className="about-quote" data-reveal="fade">“{profile.quote}”</blockquote>}<div className="about-buttons" data-reveal="fade"><a className="button button-outline" href="#portfolio" data-magnetic="">Explore my work <span aria-hidden="true">↘</span></a></div></div>
-          <div className="profile-side" data-reveal="stagger"><div className="portrait-ring"><Image src="/images/about%20pic.jpg" alt="Portrait of Mark Reeve Consul" width={640} height={640} /></div><div className="stats">
+          <div className="profile-side" data-reveal="stagger"><div className="portrait-ring"><Image src="/images/about-pic.jpg" alt="Portrait of Mark Reeve Consul" width={640} height={640} /></div><div className="stats">
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number" data-count={projects.length}>{statValue(projects.length)}</span><span className="stat-label">Projects</span></PortfolioJump>
             <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number" data-count={certificates.length}>{statValue(certificates.length)}</span><span className="stat-label">Certificates</span></PortfolioJump>
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number" data-count={completedProjects}>{statValue(completedProjects)}</span><span className="stat-label">Completed works</span></PortfolioJump>
