@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { afterBoot, gsap, isBootPlaying, useGSAP, ease, motionQueries } from "@/lib/motion";
+import { afterBootReveal, gsap, isBootPlaying, useGSAP, ease, motionQueries } from "@/lib/motion";
 import { heroScrollState } from "@/lib/hero-scroll";
 const LATE_START_MS = 2400;
 
@@ -27,7 +27,7 @@ export function HeroMotion() {
       // Paused behind the boot intro; the "from" state still applies immediately.
       const intro = gsap.timeline({ delay: 0.35, paused: true });
       let watchdog = 0;
-      const cancelBootWait = afterBoot(() => {
+      const cancelBootWait = afterBootReveal(() => {
         intro.play();
         // Watchdog: if frames stall (a busy main thread while the 3D card loads),
         // finish the entrance on a timer so the copy can never stay hidden.

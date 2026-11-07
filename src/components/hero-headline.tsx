@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { afterBoot, isBootPlaying, motionQueries } from "@/lib/motion";
+import { afterBootReveal, isBootPlaying, motionQueries } from "@/lib/motion";
 
 const GLYPHS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789/<>_+=#";
 // If hydration is this late, the CSS failsafe has already shown the text; don't re-hide it.
@@ -74,7 +74,7 @@ export function HeroHeadline({ lineOne, lineTwo }: { lineOne: string; lineTwo: s
       watchdog = window.setTimeout(finish, 3500);
       frame = requestAnimationFrame(render);
     };
-    const cancelBootWait = afterBoot(start);
+    const cancelBootWait = afterBootReveal(start);
 
     return () => {
       cancelBootWait();

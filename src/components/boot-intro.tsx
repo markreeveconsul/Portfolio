@@ -6,14 +6,17 @@ import { BootConstellation } from "@/components/boot-constellation";
 import { NetworkField } from "@/components/network-field";
 import { assistantBaseUrl, waitForAssistant } from "@/lib/assistant";
 import { BOOT_STORAGE_KEY } from "@/lib/boot";
-import { BOOT_DONE_EVENT, setScrollLock } from "@/lib/motion";
+import { BOOT_DONE_EVENT, BOOT_REVEAL_EVENT, setScrollLock } from "@/lib/motion";
 
 /** The intro always runs at least this long from page load (the light sweep ends at ~4s). */
 const MIN_INTRO_MS = 4200;
 /** Hard cap from page load: never hold a visitor longer than this, even if the backend is asleep. */
 const MAX_WAIT_MS = 8000;
-/** Exit animation length (see .boot.is-exiting in motion.css). */
-const EXIT_MS = 1850;
+/**
+ * Fallback only: the overlay is removed when its wipe animation actually ends
+ * (animationend). This timer covers browsers that never fire the event.
+ */
+const EXIT_FALLBACK_MS = 3200;
 /**
  * The ID card textures are real but heavy main-thread work. Start them once the
  * logo has formed and the light sweep is nearly done (the sequence is mostly
@@ -80,7 +83,7 @@ export function BootIntro() {
       <span className="boot-cmd">pacman -Syu</span>
       <span className="boot-pac"><span className="boot-pac-trail" /><span className="boot-pac-dots" /><span className="boot-pac-man" /></span>
       <span className="boot-percent" />
-      <span className="boot-hint">Press any key to skip</span>
+      <span className="boot-hint">Click to skip</span>
     </div>
     <span className="boot-edge" />
   </div>;
@@ -116,10 +119,26 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
     window.dispatchEvent(new Event(BOOT_DONE_EVENT));
   };
 
+  // Hand the page back only once the overlay has actually slid away, so the
+  // wipe is always seen, however busy the page is.
+  const onWipeEnd = (event: AnimationEvent) => {
+    if (event.target === root && event.animationName === "boot-wipe") finish();
+  };
+  root.addEventListener("animationend", onWipeEnd);
+
+  // Let the page start appearing underneath as the overlay slides away; otherwise
+  // it would slide off to reveal an empty dark page that looks just like itself.
+  const reveal = () => {
+    if (html.dataset.bootReveal) return;
+    html.dataset.bootReveal = "1";
+    window.dispatchEvent(new Event(BOOT_REVEAL_EVENT));
+  };
+
   // A skip that happened before this script loaded: CSS is already wiping the overlay away.
   if (html.dataset.bootSkip) {
-    later(finish, 700);
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
+    reveal();
+    later(finish, EXIT_FALLBACK_MS);
+    return () => { timers.forEach((timer) => window.clearTimeout(timer)); root.removeEventListener("animationend", onWipeEnd); };
   }
 
   html.style.overflow = "hidden";
@@ -170,21 +189,26 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
     const current = meter ? getComputedStyle(meter).getPropertyValue("--boot-progress").trim() : "";
     if (meter && current) meter.style.setProperty("--boot-progress", current);
     root.classList.add("is-exiting");
-    later(finish, EXIT_MS);
+    // The wipe starts 0.85s in; the hero entrance has its own 0.35s delay, so the
+    // copy begins rising just as the overlay starts to lift.
+    later(reveal, 500);
+    later(finish, EXIT_FALLBACK_MS);
   };
 
   Promise.allSettled(tasks).then(() => { if (!abort.signal.aborted) later(exit, MIN_INTRO_MS - performance.now()); });
   later(exit, MAX_WAIT_MS - performance.now());
-  later(finish, MAX_WAIT_MS - performance.now() + EXIT_MS + 1500); // watchdog
+  later(finish, MAX_WAIT_MS - performance.now() + EXIT_FALLBACK_MS + 1500); // watchdog
 
+  // Skip on a click or tap only, so scrolling, mouse movement or a drag never ends the intro.
   const skip = () => exit();
-  const events = ["keydown", "pointerdown", "wheel", "touchstart"] as const;
+  const events = ["click"] as const;
   events.forEach((type) => window.addEventListener(type, skip, { passive: true }));
 
   return () => {
     abort.abort();
     timers.forEach((timer) => window.clearTimeout(timer));
     events.forEach((type) => window.removeEventListener(type, skip));
+    root.removeEventListener("animationend", onWipeEnd);
     root.classList.remove("is-exiting");
     root.querySelector<HTMLElement>(".boot-meter")?.style.removeProperty("--boot-progress");
     if (!finished) { html.style.overflow = previousOverflow; setScrollLock(false); }
