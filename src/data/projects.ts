@@ -66,8 +66,13 @@ export const projects: PortfolioProject[] = [
     aiIntegrated: true,
     technologies: ["Document Q&A", "PDFs"],
     features: ["Question answering over uploaded documents and PDFs", "Document upload"],
-    image: "/images/thesa-placeholder.svg",
-    imageAlt: "Abstract placeholder preview for the Thesa AI thesis assistant",
+    image: "/images/thesa%20screenshots/thesa1.png",
+    imageAlt: "Screenshot of Thesa, the AI thesis assistant",
+    githubUrl: "https://github.com/markreeveconsul/Thesa",
+    repo: "markreeveconsul/Thesa",
+    caseStudy: {
+      gallery: [1, 2, 3].map((n) => ({ src: `/images/thesa%20screenshots/thesa${n}.png`, alt: `Thesa screenshot ${n}` })),
+    },
   },
   {
     slug: "netpath",
@@ -78,11 +83,13 @@ export const projects: PortfolioProject[] = [
     status: "In progress",
     technologies: ["Web app", "Networking education"],
     features: ["Networking learning experience", "Simulation sandbox"],
-    image: "/images/netpath-placeholder.svg",
-    imageAlt: "Abstract placeholder preview for the NetPath networking learning project",
-    // Public repo with the same name and description on GitHub; confirm it's the right one.
+    image: "/images/netpath%20screenshots/netpath1.png",
+    imageAlt: "Screenshot of NetPath, the networking learning web app",
     githubUrl: "https://github.com/markreeveconsul/NetPath",
     repo: "markreeveconsul/NetPath",
+    caseStudy: {
+      gallery: [1, 2, 3].map((n) => ({ src: `/images/netpath%20screenshots/netpath${n}.png`, alt: `NetPath screenshot ${n}` })),
+    },
   },
 ];
 
