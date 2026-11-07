@@ -109,7 +109,7 @@ export function PortfolioExplorer() {
             <ViewTransition name={`project-title-${project.slug}`} share="morph" default="none"><h3>{project.name}</h3></ViewTransition>
             <p>{project.summary}</p>
             <div className="tag-list">{project.technologies.slice(0, 3).map((tech) => <span className="tag" key={tech}>{tech}</span>)}</div>
-            <Link className="details-link" href={`/portfolio/${project.slug}`}>Details <span aria-hidden="true">↗</span></Link>
+            <Link className="details-link" href={`/portfolio/${project.slug}`}>Details <span aria-hidden="true">&#x2197;&#xFE0E;</span></Link>
           </div>
         </article>)}
       </div>}
