@@ -7,7 +7,12 @@ const LOCAL_DEFAULT = "http://127.0.0.1:8001";
 export function assistantBaseUrl(): string | null {
   const configured = process.env.NEXT_PUBLIC_ASSISTANT_API_URL?.trim();
   if (configured) return configured.replace(/\/$/, "");
-  if (typeof window !== "undefined" && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) return LOCAL_DEFAULT;
+  if (typeof window !== "undefined") {
+    // On localhost, point to the local backend port.
+    if (["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) return LOCAL_DEFAULT;
+    // On Vercel (same domain), the rewrites route /api/* to the backend service.
+    return window.location.origin;
+  }
   return null;
 }
 
