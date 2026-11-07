@@ -18,10 +18,10 @@ const cardMono = JetBrains_Mono({ subsets: ["latin"], weight: ["500"], variable:
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"),
   title: "Mark Reeve Consul — Developer Portfolio",
-  description: "Selected projects, experiments, and work by a 2nd-year IT student and developer.",
+  description: "Websites and small tools by a 2nd-year IT student from Cebu. Open to internships, collabs, and opportunities.",
   openGraph: {
     title: "Mark Reeve Consul — Developer Portfolio",
-    description: "Selected projects and experiments in web development and AI.",
+    description: "Websites and small tools by a 2nd-year IT student from Cebu. Open to internships, collabs, and opportunities.",
     images: [{ url: "/images/og-placeholder.svg", width: 1200, height: 630, alt: "Portfolio social preview placeholder" }],
   },
 };

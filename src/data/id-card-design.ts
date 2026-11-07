@@ -104,6 +104,6 @@ export const ARCH_LINUX_PATH = "M11.39.605C10.376 3.092 9.764 4.72 8.635 7.132c.
 export const CARD_PHOTO_SRC: string | null = "/images/id%20pic.jpg";
 
 // Replace this one line with the live portfolio URL before publishing the QR.
-export const PORTFOLIO_URL = "https://example.com";
+export const PORTFOLIO_URL = "https://mark-consul-dev.vercel.app";
 
 export const ARCH_LINUX_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ECEAE4"><path d="${ARCH_LINUX_PATH}"/></svg>`;
