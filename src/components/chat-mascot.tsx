@@ -47,14 +47,22 @@ function completedConversation(source: ChatMessage[]): ChatMessage[] {
 
 function localAnswerFor(rawQuestion: string): { answer: string; openInquiry?: boolean } | null {
   const question = rawQuestion.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
-  const asksForContact = /\b(contact|hire|quote|inquir|talk|start a project|work together)\b/.test(question);
-  if (asksForContact) return { answer: "I can help prepare a project inquiry. Add your details in the form and review it before choosing to send it by email.", openInquiry: true };
-  if (/\b(thesa)\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further implementation details haven’t been confirmed yet." };
-  if (/\b(netpath)\b/.test(question)) return { answer: "NetPath is an in-progress networking learning web app with a simulation sandbox. Its specific topics and sandbox capabilities are still to be confirmed." };
-  if (/\b(ai|artificial intelligence)\b/.test(question) && /\b(project|projects|use|integration)\b/.test(question)) return { answer: "The portfolio currently identifies JavaFX E-Commerce Tech Shop as having an AI integration and Thesa as an in-progress AI thesis assistant. More details about the shop integration have not been confirmed." };
-  if (/\b(freelance|available|availability|internship|job)\b/.test(question)) return { answer: "The portfolio says the owner is available for freelance projects and is interested in internship and job opportunities." };
-  if (/\b(service|services|offer|offers|pricing|price|cost|timeline|budget)\b/.test(question)) return { answer: "The services section currently shows small business websites, landing pages, and web apps as examples. These offers, prices, and timelines have not been finalized." };
-  if (/\b(project|projects|portfolio|featured|work)\b/.test(question)) return { answer: "The portfolio currently features JavaFX E-Commerce Tech Shop (completed), Thesa (in progress), and NetPath (in progress)." };
+  // Instant, correct answers for the most common questions, so they never depend
+  // on the AI providers. Anything not matched here falls through to the AI.
+  if (/^(hi|hey|hello|yo|sup|howdy|hiya|good (morning|afternoon|evening))\b/.test(question) || question === "hi" || question === "hello") {
+    return { answer: "Hey! I’m Mark’s assistant. Ask me about his projects, skills, or background, or tell me what you’re looking to build." };
+  }
+  const asksForContact = /\b(contact|hire|quote|inquir|email|reach|talk|start a project|work together)\b/.test(question);
+  if (asksForContact) return { answer: "You can email Mark at markreeveconsul@gmail.com, or I can help you prepare a project inquiry right here. Add your details in the form and review it before sending.", openInquiry: true };
+  if (/\b(forge)\b/.test(question)) return { answer: "FORGE is a completed JavaFX desktop e-commerce app for a tech shop, built on SQLite, with search, filters, a cart, checkout, order history, and an admin editor. AI features are in progress." };
+  if (/\b(portfolio studio|folio)\b/.test(question)) return { answer: "Portfolio Studio is a completed full stack web app where students build a private portfolio from five templates, using React, TypeScript, Vite, and Supabase. It’s live at myfolio-studio.vercel.app." };
+  if (/\b(thesa)\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further details haven’t been confirmed yet." };
+  if (/\b(netpath)\b/.test(question)) return { answer: "NetPath is an in-progress web app for learning networking, with a simulation sandbox. Its specific topics are still to be confirmed." };
+  if (/\b(skill|skills|good at|strength|stack|technolog|language)\b/.test(question)) return { answer: "Mark is a full stack developer focused on backend and networking. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux." };
+  if (/\b(who|about|yourself|mark)\b/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student and full stack developer focused on backend and networking. He builds projects for real-world problems and is open to freelance, internships, and jobs." };
+  if (/\b(freelance|available|availability|internship|job|hire)\b/.test(question)) return { answer: "Mark is available for freelance work and open to internship and job opportunities." };
+  if (/\b(service|services|offer|offers|pricing|price|cost|timeline|budget|build)\b/.test(question)) return { answer: "Mark builds research projects, capstone projects, and smaller web apps and tools. Prices and timelines are discussed per project." };
+  if (/\b(project|projects|portfolio|featured|work)\b/.test(question)) return { answer: "Mark’s projects are FORGE (completed), Portfolio Studio (completed), Thesa (in progress), and NetPath (in progress)." };
   return null;
 }
 type LeadForm = {
@@ -75,24 +83,24 @@ const emptyLead: LeadForm = {
 
 const QUICK_ANSWERS = [
   {
-    question: "What projects are featured?",
-    answer: "The portfolio currently features three projects: JavaFX E-Commerce Tech Shop (completed), Thesa (in progress), and NetPath (in progress).",
+    question: "What projects has Mark built?",
+    answer: "Mark has built four projects: FORGE, a completed JavaFX desktop e-commerce app; Portfolio Studio, a completed full stack web app for student portfolios; and Thesa and NetPath, both in progress.",
   },
   {
-    question: "Which projects use AI?",
-    answer: "JavaFX E-Commerce Tech Shop includes an AI integration, though its exact behavior isn’t documented yet. Thesa is an in-progress assistant for questions about uploaded documents and PDFs.",
+    question: "What is Mark good at?",
+    answer: "Mark is a full stack developer focused on backend and networking. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux.",
   },
   {
-    question: "What is Thesa?",
-    answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. More implementation details haven’t been confirmed yet.",
+    question: "What is FORGE?",
+    answer: "FORGE is a completed JavaFX desktop e-commerce app for a tech shop, built on SQLite. Customers can search, filter, use a cart and checkout, and the owner manages products and stock through an admin editor. AI features are in progress.",
   },
   {
-    question: "What is NetPath?",
-    answer: "NetPath is an in-progress networking learning web app with a simulation sandbox. Its specific topics and sandbox capabilities are still to be confirmed.",
+    question: "What is Portfolio Studio?",
+    answer: "Portfolio Studio is a completed full stack web app where students build a private portfolio from five templates. It uses React, TypeScript, Vite, and Supabase, and is live at myfolio-studio.vercel.app.",
   },
   {
-    question: "Is the owner available for freelance work?",
-    answer: "The portfolio says the owner is available for freelance projects and is also interested in internship and job opportunities.",
+    question: "How can I contact Mark?",
+    answer: "You can email Mark at markreeveconsul@gmail.com or browse his code on GitHub (github.com/markreeveconsul). I can also help you start a project inquiry right here.",
   },
 ] as const;
 
