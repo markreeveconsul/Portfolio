@@ -428,12 +428,24 @@ function FirstFrame({ onReady }: { onReady?: () => void }) {
   return null;
 }
 
+/** Crossfade length (matches .hero-card-canvas and .card-materialize.is-leaving in motion.css). */
+const CROSSFADE_MS = 900;
+
 export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; onReady?: () => void }) {
   const [paused, setPaused] = useState(false);
   const [fast, setFast] = useState(false);
   const [faceBack, setFaceBack] = useState(false);
+  // Hidden until the first frame is drawn, then crossfades in over the placeholder,
+  // facing forward like it; the spin starts only once the crossfade is done.
+  const [drawn, setDrawn] = useState(false);
+  const [spinning, setSpinning] = useState(false);
+  const handleFirstFrame = () => {
+    setDrawn(true);
+    onReady?.();
+    window.setTimeout(() => setSpinning(true), CROSSFADE_MS);
+  };
   const flip = () => setFaceBack((value) => !value);
-  return <div className="hero-card-stage hero-card-canvas" role="group" aria-label="Floating 3D portfolio card">
+  return <div className={`hero-card-stage hero-card-canvas${drawn ? " is-ready" : ""}`} role="group" aria-label="Floating 3D portfolio card">
     <Canvas dpr={[1, idCardRendering.maxDpr]} camera={{ position: [0, 0.05, 8], fov: 34 }} gl={{
       alpha: true,
       antialias: true,
@@ -451,8 +463,8 @@ export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; o
       <ambientLight intensity={0.4} />
       <directionalLight position={[2, 3, 5]} intensity={1.1} />
       <directionalLight position={[-3, -1, -4]} intensity={0.35} color="#C9D0DA" />
-      <CardRig paused={paused} fast={fast} faceBack={faceBack} faces={faces} onFlip={flip} />
-      <FirstFrame onReady={onReady} />
+      <CardRig paused={paused || !spinning} fast={fast} faceBack={faceBack} faces={faces} onFlip={flip} />
+      <FirstFrame onReady={handleFirstFrame} />
     </Canvas>
     <div className="id-control-dock" role="group" aria-label="ID card controls">
       <button className="id-control" type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>{paused ? "Resume spin" : "Pause to read"}</button>

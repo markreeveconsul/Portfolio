@@ -40,12 +40,15 @@ function loadedFontFamily(variableName: string, fallback: string) {
   return value || fallback;
 }
 
-function drawNoise(ctx: CanvasRenderingContext2D) {
+// The grain tile is identical for both faces, so build it once.
+let grainTile: HTMLCanvasElement | null = null;
+function getGrainTile() {
+  if (grainTile) return grainTile;
   const grain = document.createElement("canvas");
   grain.width = 640;
   grain.height = 640;
   const grainCtx = grain.getContext("2d");
-  if (!grainCtx) return;
+  if (!grainCtx) return null;
   const pixels = grainCtx.createImageData(grain.width, grain.height);
   let seed = 0x29a71;
   for (let index = 0; index < pixels.data.length; index += 4) {
@@ -57,6 +60,13 @@ function drawNoise(ctx: CanvasRenderingContext2D) {
     pixels.data[index + 3] = 255;
   }
   grainCtx.putImageData(pixels, 0, 0);
+  grainTile = grain;
+  return grain;
+}
+
+function drawNoise(ctx: CanvasRenderingContext2D) {
+  const grain = getGrainTile();
+  if (!grain) return;
   const pattern = ctx.createPattern(grain, "repeat");
   if (!pattern) return;
   ctx.save();
@@ -337,11 +347,24 @@ async function createFaces(): Promise<CardFaceCanvases> {
   const back = document.createElement("canvas");
   front.width = back.width = cardFacePixels.textureWidth;
   front.height = back.height = cardFacePixels.textureHeight;
+  // One step per task, yielding in between, so animations keep their frames
+  // (doing it all at once blocked the main thread for ~0.5s).
+  await yieldToMain();
   drawFront(canvas2d(front), displayFont, monoFont, photo, qr);
+  await yieldToMain();
   drawBack(canvas2d(back), monoFont, arch, qr);
+  await yieldToMain();
   drawNoise(front.getContext("2d")!);
+  await yieldToMain();
   drawNoise(back.getContext("2d")!);
   return { front, back };
+}
+
+function yieldToMain() {
+  return new Promise<void>((resolve) => {
+    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(() => resolve(), { timeout: 120 });
+    else setTimeout(resolve, 0);
+  });
 }
 
 export function getIdCardFaceCanvases() {

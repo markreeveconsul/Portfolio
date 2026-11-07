@@ -15,6 +15,7 @@ import { certificates } from "@/data/certificates";
 import { techStackItems } from "@/data/techstack";
 import { ChatMascot } from "@/components/chat-mascot";
 import { GithubActivity } from "@/components/github-activity";
+import { NetworkField } from "@/components/network-field";
 import { ArchWordmark } from "@/components/arch-wordmark";
 
 const processSteps = ["Talk", "Design", "Build", "Revise", "Deliver"];
@@ -33,6 +34,8 @@ export default function HomePage() {
   return <>
     <a className="sr-only focus:not-sr-only" href="#main">Skip to content</a>
     <Navbar />
+    {/* Constellation behind the whole page (fixed, drifts with scroll, reacts to the cursor). */}
+    <div className="site-field" aria-hidden="true"><NetworkField parallax /></div>
     <main id="main" className="site-wrap">
       <section className="hero" id="home" aria-labelledby="hero-title">
         <HeroMotion />

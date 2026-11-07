@@ -3,14 +3,11 @@
 import { useRef } from "react";
 import { afterBoot, gsap, isBootPlaying, useGSAP, ease, motionQueries } from "@/lib/motion";
 import { heroScrollState } from "@/lib/hero-scroll";
-import { NetworkField } from "@/components/network-field";
-
 const LATE_START_MS = 2400;
 
 /**
  * Hero choreography: staggered entrance for the copy, and scroll-linked exit
- * (copy drifts up, background fades, the 3D card tilts away). Renders the
- * network background so it lives inside the hero's stacking context.
+ * (copy drifts up, the 3D card tilts away).
  */
 export function HeroMotion() {
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -46,13 +43,12 @@ export function HeroMotion() {
           stagger: 0.08,
           onStart: () => show(items),
           clearProps: "filter,visibility",
-        })
-        .fromTo(hero.querySelector(".network-field"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 1.6, ease: ease.soft }, 0);
+        });
 
       // Scroll-linked exit, scrubbed against the smoothed scroll position.
+      // (The constellation is now a site-wide background, so it stays.)
       const exit = gsap.timeline({ scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: 0.6 } });
       exit.to(hero.querySelector(".hero-copy"), { y: -80, autoAlpha: 0.15, ease: "none" }, 0)
-        .to(hero.querySelector(".network-field"), { y: 120, autoAlpha: 0, ease: "none" }, 0)
         .to(hero.querySelector(".hero-scroll"), { autoAlpha: 0, ease: "none", duration: 0.25 }, 0);
 
       if (desktop) {
@@ -67,5 +63,5 @@ export function HeroMotion() {
     return () => mm.revert();
   });
 
-  return <div ref={anchorRef} className="hero-motion" aria-hidden="true"><NetworkField /></div>;
+  return <div ref={anchorRef} className="hero-motion" aria-hidden="true" />;
 }

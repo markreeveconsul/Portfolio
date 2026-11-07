@@ -15,3 +15,7 @@ backend/.venv/
 backend/__pycache__/
 backend/**/__pycache__/
 backend/**/*.py[cod]
+
+# Local scratch scripts and logs used while developing (never committed)
+.devtmp/
+*.devlog
