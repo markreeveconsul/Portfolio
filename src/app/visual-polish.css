@@ -114,7 +114,9 @@
 .css-flat-face{position:absolute;inset:0;overflow:hidden;border:1px solid #2A2E35;border-radius:22px;background:#121418;backface-visibility:hidden}
 .css-flat-face img{display:block;width:100%;height:100%;object-fit:fill}
 .css-irid-rule{position:absolute;z-index:2;left:5.79%;top:80.08%;width:14.74%;height:.51%;min-height:1px;background:linear-gradient(100deg,#8E96A3,#EEF1F5 18%,#A8E6F0 32%,#E9B8F0 46%,#FFE9B5 60%,#EEF1F5 74%,#8E96A3);pointer-events:none}
-.css-flat-face::before{content:"";position:absolute;z-index:1;right:5.3%;top:7.8%;bottom:7.8%;width:1.6%;min-width:3px;max-width:6px;border-radius:99px;background:linear-gradient(180deg,#6B727D 0%,#EEF1F5 12%,#BFC7D2 24%,#A8E6F0 34%,#E9B8F0 46%,#FFE9B5 54%,#EEF1F5 64%,#8E96A3 78%,#D5DBE4 90%,#6B727D 100%);box-shadow:inset 0 0 1px rgba(255,255,255,.7);mix-blend-mode:screen;pointer-events:none}
+/* Foil thread only on the back face — front face has the irid rule instead */
+.css-flat-back::before{content:"";position:absolute;z-index:1;right:5.3%;top:7.8%;bottom:7.8%;width:1.6%;min-width:3px;max-width:6px;border-radius:99px;background:linear-gradient(180deg,#6B727D 0%,#EEF1F5 12%,#BFC7D2 24%,#A8E6F0 34%,#E9B8F0 46%,#FFE9B5 54%,#EEF1F5 64%,#8E96A3 78%,#D5DBE4 90%,#6B727D 100%);box-shadow:inset 0 0 1px rgba(255,255,255,.7);mix-blend-mode:screen;pointer-events:none}
+.css-flat-face::before{display:none}
 .css-flat-face::after{content:"";position:absolute;z-index:1;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 35%,rgba(168,230,240,.08) 44%,rgba(233,184,240,.1) 50%,rgba(255,233,181,.08) 56%,transparent 65%);background-size:260% 100%;background-position:70% 0;mix-blend-mode:screen;transition:background-position .9s ease;pointer-events:none}
 .css-flat-card:hover .css-flat-face::after{background-position:20% 0}
 .css-flat-back{transform:rotateY(180deg)}
