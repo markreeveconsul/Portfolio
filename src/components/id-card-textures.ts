@@ -257,14 +257,15 @@ function drawFront(ctx: CanvasRenderingContext2D, displayFont: string, monoFont:
   ctx.font = `500 14px ${monoFont}`;
   ctx.fillText(idCardCopy.frontRole, 22, ruleY + 25);
 
+  // QR is on the back only. Front shows skills with no QR clutter.
+  const skillTextX = 36;
   ctx.font = `500 14px ${monoFont}`;
   ctx.fillStyle = idCardPalette.platinum;
-  ctx.fillText(idCardCopy.frontSkills[0], 22, 535);
-  ctx.fillText(idCardCopy.frontSkills[1], 22, 557);
+  ctx.fillText(idCardCopy.frontSkills[0], skillTextX, 535);
+  ctx.fillText(idCardCopy.frontSkills[1], skillTextX, 557);
   ctx.fillStyle = idCardPalette.ink;
   ctx.fillRect(22, 524, 6, 6);
   ctx.fillRect(22, 546, 6, 6);
-  drawQRPanel(ctx, qr, 302, 512);
 }
 
 function drawBack(ctx: CanvasRenderingContext2D, monoFont: string, archLogo: HTMLImageElement, qr: HTMLImageElement) {
