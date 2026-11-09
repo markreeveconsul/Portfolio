@@ -64,7 +64,11 @@
 .hero-card-canvas{touch-action:none}
 .hero-card-canvas .hero-glow{display:none}
 .hero-card-canvas canvas{touch-action:none}
-.id-control-dock{position:absolute;right:clamp(22px,12vw,190px);bottom:28px;z-index:4;display:flex;align-items:center;gap:7px;pointer-events:none}
+/* Control dock: centered under the 3D card which sits right of center in the hero.
+   The card's center is approximately at 68% of the canvas width on desktop. */
+.id-control-dock{position:absolute;left:74%;bottom:28px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;pointer-events:none}
+@media(max-width:1100px){.id-control-dock{left:76%}}
+@media(max-width:900px){.id-control-dock{left:74%;bottom:20px}}
 .id-control{min-height:36px;padding:9px 12px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(18,19,26,.92);color:#d9dbe4;font:10px var(--body-font);white-space:nowrap;cursor:pointer;pointer-events:auto;transition:border-color .18s,background .18s,color .18s}
 .id-control:hover{border-color:rgba(154,159,255,.55);background:#1a1c27;color:#fff}
 .id-control[aria-pressed="true"]{border-color:rgba(154,159,255,.5);background:rgba(137,151,255,.13);color:#e9eaff}
@@ -98,7 +102,7 @@
 .id-control-dock-fallback{position:relative;right:auto;bottom:auto;justify-content:center;flex-wrap:wrap;max-width:100%;gap:6px}
 @keyframes portfolio-card-spin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
 @keyframes portfolio-card-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@media(max-width:900px){.id-control-dock{right:clamp(16px,5vw,44px);bottom:28px}.id-control{min-height:34px;padding:8px 10px;font-size:9px}}
+@media(max-width:900px){.id-control-dock{bottom:20px}.id-control{min-height:34px;padding:8px 10px;font-size:9px}}
 @media(max-width:680px){.css-id-stage{height:440px;margin-top:4px}.css-id-orbit,.css-id-card{width:230px}.css-id-face{border-radius:13px}.id-control-dock-fallback{right:auto;bottom:auto}.hero-card-canvas .id-control-dock{display:none}}
 @media(prefers-reduced-motion:reduce){.css-id-float{animation:none}.css-id-orbit{animation:none}}
 
