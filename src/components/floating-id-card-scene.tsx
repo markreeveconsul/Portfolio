@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { createPortal } from "react-dom";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
-import { idCardDimensions, idCardPalette, idCardRendering } from "@/data/id-card-design";
+import { idCardDimensions, idCardPalette, idCardRendering, CARD_RULE_Y_FRAC, PORTFOLIO_URL } from "@/data/id-card-design";
 import { getCardSurfaceNormalCanvas, type CardFaceCanvases } from "@/components/id-card-textures";
 import { heroScrollState } from "@/lib/hero-scroll";
 
@@ -394,7 +395,7 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     <group ref={card} position={[cardX, 0, 0]} scale={[MODEL_VISUAL_SCALE_X * CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE]} onPointerDown={startDrag} onClick={(event) => { if (event.delta < 6) onFlip(); }} onPointerOver={() => { document.documentElement.dataset.cursorHint = "drag"; if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { delete document.documentElement.dataset.cursorHint; if (!drag.current.active) document.body.style.cursor = ""; }}>
     <mesh geometry={cardGeometry} material={cardMaterials} />
     <mesh geometry={cardGeometry} material={sheenMaterials} renderOrder={2} />
-    <mesh geometry={ruleGeometry} position={[-CARD_WIDTH / 2 + CARD_WIDTH * (50 / 380), CARD_HEIGHT / 2 - CARD_HEIGHT * (472.5 / 590), CARD_DEPTH / 2 + 0.009]} material={ruleMaterial} renderOrder={3} />
+    <mesh geometry={ruleGeometry} position={[-CARD_WIDTH / 2 + CARD_WIDTH * (50 / 380), CARD_HEIGHT / 2 - CARD_HEIGHT * CARD_RULE_Y_FRAC, CARD_DEPTH / 2 + 0.009]} material={ruleMaterial} renderOrder={3} />
     <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.006]} material={foilMaterial} renderOrder={3} />
     <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.006]} rotation={[0, Math.PI, 0]} material={foilMaterial} renderOrder={3} />
     <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.008]} material={foilSpectrumMaterial} renderOrder={4} />
@@ -444,8 +445,37 @@ export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; o
     onReady?.();
     window.setTimeout(() => setSpinning(true), CROSSFADE_MS);
   };
+  const [qrOpen, setQrOpen] = useState(false);
+  useEffect(() => {
+    if (!qrOpen) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setQrOpen(false); };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [qrOpen]);
   const flip = () => setFaceBack((value) => !value);
-  return <div className={`hero-card-stage hero-card-canvas${drawn ? " is-ready" : ""}`} role="group" aria-label="Floating 3D portfolio card">
+
+  // Click on the canvas when back face is showing: open QR if click is near the QR panel.
+  const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!faceBack || qrOpen) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    if (x > 0.62 && y > 0.72) { setPaused(true); setQrOpen(true); }
+  };
+
+  const lightbox = qrOpen && typeof document !== "undefined" ? createPortal(
+    <div className="qr-lightbox" role="dialog" aria-modal="true" aria-label="QR code enlarged" onClick={() => setQrOpen(false)}>
+      <div className="qr-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(PORTFOLIO_URL)}&color=121418&bgcolor=ECEAE4`} alt="QR code linking to the portfolio" width={320} height={320} />
+        <p>Scan to open <strong>mark-consul-dev.vercel.app</strong></p>
+        <button className="qr-lightbox-close" type="button" aria-label="Close QR code" onClick={() => setQrOpen(false)}>&#x2715;</button>
+      </div>
+    </div>,
+    document.body
+  ) : null;
+
+  return <div className={`hero-card-stage hero-card-canvas${drawn ? " is-ready" : ""}`} role="group" aria-label="Floating 3D portfolio card" onClick={handleCanvasClick}>
+    {lightbox}
     <Canvas dpr={[1, idCardRendering.maxDpr]} camera={{ position: [0, 0.05, 8], fov: 34 }} gl={{
       alpha: true,
       antialias: true,
@@ -469,6 +499,7 @@ export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; o
     <div className="id-control-dock" role="group" aria-label="ID card controls">
       <button className="id-control" type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>{paused ? "Resume spin" : "Pause to read"}</button>
       <button className="id-control" type="button" aria-pressed={faceBack} onClick={flip}>{faceBack ? "Show front" : "Read the back"}</button>
+      <button className="id-control" type="button" onClick={() => { setPaused(true); setQrOpen(true); }}>Scan QR</button>
       <HoldToBoost fast={fast} onChange={setFast} />
     </div>
     <span className="sr-only">The card slowly rotates. Drag it to tilt, pause it to read, or hold the speed control to spin faster.</span>
