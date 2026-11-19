@@ -59,10 +59,12 @@ function localAnswerFor(rawQuestion: string): { answer: string; openInquiry?: bo
   if (/\b(thesa)\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further details haven’t been confirmed yet." };
   if (/\b(netpath)\b/.test(question)) return { answer: "NetPath is an in-progress web app for learning networking, with a simulation sandbox. Its specific topics are still to be confirmed." };
   if (/\b(skill|skills|good at|strength|stack|technolog|language)\b/.test(question)) return { answer: "Mark builds websites and small tools. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux." };
-  if (/\b(who|about|yourself|mark)\b/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools. He's junior, still learning, and open to internships, collabs, and opportunities." };
+  if (/\b(projects?|portfolio|featured work|work)\b/.test(question) || /\bwhat (?:has )?mark (?:made|built|created|developed)\b/.test(question) || /\bwhat did mark (?:make|build|create|develop)\b/.test(question)) {
+    return { answer: "Mark’s portfolio highlights four projects: FORGE, a completed JavaFX and SQLite e-commerce app; Portfolio Studio, a completed full-stack app for student portfolios; Thesa, an in-progress AI thesis assistant; and NetPath, an in-progress networking-learning app." };
+  }
+  if (/\b(who is mark|who is he|about mark|tell me about mark|yourself|mark background|his background|what does mark do)\b/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools. He's junior, still learning, and open to internships, collabs, and opportunities." };
   if (/\b(freelance|available|availability|internship|job|hire|opportunit|collab)\b/.test(question)) return { answer: "Mark is open to internships, collabs, and other opportunities where he can get real experience." };
   if (/\b(service|services|offer|offers|pricing|price|cost|timeline|budget|build)\b/.test(question)) return { answer: "Mark builds research projects, capstone projects, and smaller web apps and tools. Prices and timelines are discussed per project." };
-  if (/\b(project|projects|portfolio|featured|work)\b/.test(question)) return { answer: "Mark’s projects are FORGE (completed), Portfolio Studio (completed), Thesa (in progress), and NetPath (in progress)." };
   return null;
 }
 type LeadForm = {
