@@ -395,7 +395,6 @@ function FloatingCard({ paused, fast, faceBack, faces, onFlip }: {
     <group ref={card} position={[cardX, 0, 0]} scale={[MODEL_VISUAL_SCALE_X * CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE, CARD_PRESENTATION_SCALE]} onPointerDown={startDrag} onClick={(event) => { if (event.delta < 6) onFlip(); }} onPointerOver={() => { document.documentElement.dataset.cursorHint = "drag"; if (!drag.current.active) document.body.style.cursor = "grab"; }} onPointerOut={() => { delete document.documentElement.dataset.cursorHint; if (!drag.current.active) document.body.style.cursor = ""; }}>
     <mesh geometry={cardGeometry} material={cardMaterials} />
     <mesh geometry={cardGeometry} material={sheenMaterials} renderOrder={2} />
-    <mesh geometry={ruleGeometry} position={[-CARD_WIDTH / 2 + CARD_WIDTH * (50 / 380), CARD_HEIGHT / 2 - CARD_HEIGHT * CARD_RULE_Y_FRAC, CARD_DEPTH / 2 + 0.009]} material={ruleMaterial} renderOrder={3} />
     <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.006]} material={foilMaterial} renderOrder={3} />
     <mesh geometry={foilGeometry} position={[-(FACE_HALF_WIDTH - 0.065), 0, -CARD_DEPTH / 2 - 0.006]} rotation={[0, Math.PI, 0]} material={foilMaterial} renderOrder={3} />
     <mesh geometry={foilGeometry} position={[FACE_HALF_WIDTH - 0.065, 0, CARD_DEPTH / 2 + 0.008]} material={foilSpectrumMaterial} renderOrder={4} />

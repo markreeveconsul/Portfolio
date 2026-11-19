@@ -189,7 +189,8 @@ html.lenis{scroll-behavior:auto}
 
 /* ---------- Footer wordmark ---------- */
 .footer{position:relative;overflow:hidden;padding-top:clamp(56px,9vw,120px)}
-.footer-big{display:block;margin:0 0 clamp(20px,3vw,36px);font:700 clamp(72px,17vw,250px)/.82 var(--display);letter-spacing:-.06em;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(236,234,228,.14);user-select:none}
+.footer-big{display:block;margin:0 0 clamp(20px,3vw,36px);font:700 clamp(72px,17vw,250px)/.82 var(--display);letter-spacing:-.06em;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(236,234,228,.14);user-select:none;text-align:center}
+
 
 /* ---------- View transitions (project card -> detail page) ---------- */
 ::view-transition{pointer-events:none}
@@ -266,7 +267,7 @@ html[data-boot-skip] .boot{animation:boot-wipe .7s var(--ease-in-out) forwards}
 @keyframes boot-breathe{50%{transform:scale(1.012)}}
 
 /* Wordmark. Base styles are the final state; the intro animations supply the "from" states. */
-.boot-word{font:800 clamp(56px,13vw,190px)/1 var(--display);letter-spacing:-.04em}
+.boot-word{font:800 clamp(56px,13vw,190px)/1 var(--display);letter-spacing:-.04em;text-align:center}
 .boot-word .arch-letter>span{color:transparent;background:linear-gradient(100deg,#ECEAE4 0,#ECEAE4 40%,#fff 47%,#A8E6F0 51%,#E9B8F0 55%,#ECEAE4 62%,#ECEAE4 100%);background-size:300% 100%;background-position:0 0;-webkit-background-clip:text;background-clip:text;animation:boot-letter-in .85s var(--ease-out) 1.85s both,boot-sheen 1.3s var(--ease-in-out) 2.6s both}
 .boot-word .arch-letter:nth-child(3)>span{animation-delay:1.94s,2.72s}
 .boot-word .arch-letter:nth-child(4)>span{animation-delay:2.03s,2.78s}
