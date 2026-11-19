@@ -4,15 +4,12 @@ import dynamic from "next/dynamic";
 import { Component, useEffect, useRef, useState, type ErrorInfo, type ReactNode } from "react";
 import { getIdCardFaceCanvases, type CardFaceCanvases } from "@/components/id-card-textures";
 import { idCardCopy } from "@/data/id-card-design";
-import { afterBoot, useAfterBoot } from "@/lib/motion";
+import { afterBoot, isBootPlaying, signalHeroCardReady } from "@/lib/motion";
 import { CardMaterialize } from "@/components/card-materialize";
 
-/**
- * The WebGL card mounts this long after the boot ends: after the headline has
- * decoded and the hero copy has risen in, so the shader compile can't stutter
- * them. The materializing placeholder covers the wait.
- */
-const SCENE_DELAY_MS = 1700;
+/** Keep card preparation inside the boot curtain; the first scene frame gates reveal. */
+const CARD_PREPARE_DELAY_MS = 2700;
+const SCENE_FALLBACK_MS = 9500;
 
 // Encoding a 1520×2360 canvas is expensive. Do it once per canvas, off the
 // render path (toBlob is async), and reuse the object URL on every re-render.
@@ -135,11 +132,23 @@ function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; r
     if (!faces) return;
     let active = true;
     Promise.all([encodeFace(faces.front), encodeFace(faces.back)])
-      .then(([front, back]) => { if (active) setImages({ front, back }); })
+      .then(async ([front, back]) => {
+        const decode = (src: string) => new Promise<void>((resolve) => {
+          const image = new Image();
+          image.onload = () => resolve();
+          image.onerror = () => resolve();
+          image.src = src;
+          if (image.complete) resolve();
+          else if (typeof image.decode === "function") image.decode().then(resolve, resolve);
+        });
+        await Promise.all([decode(front), decode(back)]);
+        if (active) setImages({ front, back });
+      })
       .catch(() => { /* keep the text fallback */ });
     return () => { active = false; };
   }, [faces]);
   const ready = Boolean(images);
+  useEffect(() => { if (ready) signalHeroCardReady(); }, [ready]);
   // Keep the placeholder briefly after the card arrives, fading out, so it's a crossfade, not a swap.
   const [placeholderGone, setPlaceholderGone] = useState(false);
   useEffect(() => {
@@ -194,23 +203,34 @@ export function HeroIdCard() {
   const [mode, setMode] = useState<"pending" | "css" | "webgl">("pending");
   const [reducedMotion, setReducedMotion] = useState(false);
   // Scene mounts only once the textures exist and the intro + hero entrance have had the main thread.
-  const sceneReady = useAfterBoot(SCENE_DELAY_MS);
   const [sceneDrawn, setSceneDrawn] = useState(false);
   const [placeholderGone, setPlaceholderGone] = useState(false);
   const onSceneReady = () => {
     setSceneDrawn(true);
+    signalHeroCardReady();
     window.setTimeout(() => setPlaceholderGone(true), 1000); // after the 900ms crossfade
   };
 
   useEffect(() => {
     let active = true;
-    // During the intro, the boot sequence generates the textures at a quiet moment
-    // (same cached promise); otherwise start once the page has settled.
-    const cancel = afterBoot(() => {
+    let started = false;
+    let delayed = 0;
+    const load = () => {
+      if (started || !active) return;
+      started = true;
       getIdCardFaceCanvases().then((result) => { if (active) setFaces(result); }).catch(() => { if (active) setTextureError(true); });
-    });
-    return () => { active = false; cancel(); };
+    };
+    const cancelBoot = isBootPlaying() ? afterBoot(load) : () => {};
+    if (isBootPlaying()) delayed = window.setTimeout(load, CARD_PREPARE_DELAY_MS);
+    else load();
+    return () => { active = false; window.clearTimeout(delayed); cancelBoot(); };
   }, []);
+
+  useEffect(() => {
+    if (mode !== "webgl" || !faces || sceneDrawn || !isBootPlaying()) return;
+    const timer = window.setTimeout(() => setTextureError(true), SCENE_FALLBACK_MS);
+    return () => window.clearTimeout(timer);
+  }, [mode, faces, sceneDrawn]);
 
   useEffect(() => {
     const mobile = window.matchMedia("(max-width: 680px)");
@@ -231,11 +251,10 @@ export function HeroIdCard() {
   const cssCard = <CssIdCard faces={faces} reducedMotion={reducedMotion} />;
   if (mode === "css" || textureError) return cssCard;
 
-  // WebGL: the materializing wireframe sits exactly where the card will appear, and
-  // crossfades out once the scene has drawn its first frame. The scene itself waits
-  // for the boot intro and hero entrance (shader compile is heavy).
+  // Keep the real renderer mounted under the boot curtain; its first rendered
+  // frame (or the CSS fallback) signals that the hero card can be revealed.
   return <>
     {!placeholderGone && <CardMaterialize floating leaving={sceneDrawn} />}
-    {faces && sceneReady && <SceneErrorBoundary fallback={cssCard}><InteractiveScene faces={faces} onReady={onSceneReady} /></SceneErrorBoundary>}
+    {faces && <SceneErrorBoundary fallback={cssCard}><InteractiveScene faces={faces} onReady={onSceneReady} /></SceneErrorBoundary>}
   </>;
 }

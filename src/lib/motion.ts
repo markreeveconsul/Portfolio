@@ -46,6 +46,14 @@ export function scrollToSection(id: string) {
 // paint by an inline script: "play" while the intro runs, "done" afterwards,
 // "skip" when it won't run (returning visit this session, reduced motion).
 export const BOOT_DONE_EVENT = "portfolio:boot-done";
+export const HERO_CARD_READY_EVENT = "portfolio:hero-card-ready";
+
+/** Tell the boot gate the visible hero card is ready to reveal. */
+export function signalHeroCardReady() {
+  if (typeof document === "undefined" || typeof window === "undefined") return;
+  document.documentElement.dataset.heroCardReady = "1";
+  window.dispatchEvent(new Event(HERO_CARD_READY_EVENT));
+}
 
 export function isBootPlaying() {
   return typeof document !== "undefined" && document.documentElement.dataset.boot === "play";
