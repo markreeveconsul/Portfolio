@@ -210,7 +210,7 @@ html.lenis{scroll-behavior:auto}
 }
 @media(max-width:480px){
   .boot-word{font-size:clamp(44px,15vw,80px)}
-  .footer-big{font-size:clamp(44px,15vw,80px)}
+  .footer-big{display:flex;justify-content:center;align-items:center;box-sizing:border-box;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);font-size:clamp(44px,15vw,80px);text-align:center}.footer-big .arch-wordmark{display:flex;justify-content:center;align-items:center;width:max-content;max-width:100%;margin-inline:auto}
 }
 
 /* ---------- Reduced motion ---------- */
@@ -247,7 +247,7 @@ html.lenis{scroll-behavior:auto}
    ===================================================================== */
 @property --boot-progress{syntax:"<number>";inherits:true;initial-value:0}
 @property --boot-pct{syntax:"<integer>";inherits:true;initial-value:0}
-.boot{position:fixed;inset:0;z-index:300;display:none;place-items:center;overflow:hidden;background:radial-gradient(ellipse 60% 50% at 50% 45%,#11131a,#07080b 75%);color:var(--ink);will-change:transform;animation:boot-wipe .95s var(--ease-in-out) 10s forwards}
+.boot{position:fixed;inset:0;z-index:300;display:none;place-items:center;overflow:hidden;background:radial-gradient(ellipse 60% 50% at 50% 45%,#11131a,#07080b 75%);color:var(--ink);will-change:transform;animation:boot-wipe .95s var(--ease-in-out) 14s forwards}
 html[data-boot="play"] .boot{display:grid}
 @media (scripting: none){.boot{display:none!important}}
 /* The progress value animates on the meter only (its sole consumer), so each frame
