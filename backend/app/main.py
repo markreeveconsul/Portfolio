@@ -100,8 +100,31 @@ KNOWLEDGE_BASE = [
     },
 ]
 
-STOP_WORDS = {"a", "an", "and", "are", "about", "can", "do", "for", "how", "i", "is", "it", "me", "my", "of", "on", "the", "tell", "what", "which", "who", "with", "you", "your"}
+STOP_WORDS = {"a", "an", "and", "are", "about", "any", "all", "can", "created", "did", "do", "does", "for", "have", "has", "he", "his", "how", "i", "is", "it", "made", "mark", "me", "my", "of", "on", "the", "tell", "what", "which", "who", "with", "you", "your", "built", "build", "developed", "list", "show"}
 BROAD_TERMS = {"project", "projects", "work", "portfolio"}
+PROJECT_ENTRY_IDS = ("forge", "portfolio-studio", "thesa", "netpath")
+PROJECT_OVERVIEW_ANSWER = (
+    "Mark’s portfolio highlights four projects: FORGE, a completed JavaFX and SQLite e-commerce app; "
+    "Portfolio Studio, a completed full-stack app for student portfolios; Thesa, an in-progress AI thesis assistant; "
+    "and NetPath, an in-progress networking-learning app."
+)
+
+
+def _asks_for_project_overview(question: str) -> bool:
+    normalized = re.sub(r"[^a-z0-9]+", " ", question.lower()).strip()
+    project_topic = re.search(r"\b(projects?|portfolio|work|apps)\b", normalized)
+    list_intent = re.search(r"\b(what|which|list|show|tell|has|have|made|built|created|developed)\b", normalized)
+    creation_question = re.search(
+        r"\b(what|which|list|show|tell)\b.*\b(mark|he)\b.*\b(make|made|build|built|create|created|develop|developed)\b",
+        normalized,
+    )
+    named_project = re.search(r"\b(forge|thesa|netpath|portfolio studio)\b", normalized)
+    return bool(not named_project and ((project_topic and list_intent) or creation_question))
+
+
+def _project_overview_context() -> str:
+    entries = {entry["id"]: entry for entry in KNOWLEDGE_BASE}
+    return "\n".join(entries[entry_id]["content"] for entry_id in PROJECT_ENTRY_IDS if entry_id in entries)
 
 # Semantic retrieval (RAG). Each knowledge entry is embedded once and cached; the
 # question is embedded per request and matched by cosine similarity. If embeddings
@@ -188,7 +211,7 @@ def _semantic_context(question: str, limit: int) -> str | None:
     scored = sorted(((float(np.dot(query, vector)), entry) for entry, vector in docs), key=lambda item: item[0], reverse=True)
     chosen = [entry["content"] for score, entry in scored[:limit] if score >= EMBED_MIN_SIMILARITY]
     if not chosen:
-        return "No relevant approved portfolio facts were retrieved."
+        return None
     return "\n".join(chosen)
 
 SYSTEM_INSTRUCTION = (
@@ -237,18 +260,14 @@ def _keyword_context(question: str, limit: int) -> str:
         return "No relevant approved portfolio facts were retrieved."
 
     specific_terms = terms - BROAD_TERMS
-    specific_matches = []
-    broad_matches = []
+    ranked = []
     for entry in KNOWLEDGE_BASE:
         keywords = set(entry["keywords"].split())
         specific_score = len(specific_terms & keywords)
         broad_score = len(terms & keywords)
-        if specific_score:
-            specific_matches.append((specific_score, entry["content"]))
-        elif broad_score:
-            broad_matches.append((broad_score, entry["content"]))
-
-    ranked = specific_matches or broad_matches
+        score = specific_score * 2 + broad_score
+        if score:
+            ranked.append((score, entry["content"]))
     ranked.sort(key=lambda item: item[0], reverse=True)
     if not ranked:
         return "No relevant approved portfolio facts were retrieved."
@@ -411,6 +430,15 @@ def _approved_system_instruction(messages: list[ChatMessage]) -> str:
     )
 
 
+def _retrieval_question(messages: list[ChatMessage]) -> str:
+    current = messages[-1].content.strip()
+    vague_follow_up = bool(re.search(r"\b(it|that|them|those|its|their|more|else)\b", current.lower())) and len(current.split()) <= 12
+    if not vague_follow_up:
+        return current
+    previous_visitor = next((message.content for message in reversed(messages[:-1]) if message.role == "user"), None)
+    return f"{previous_visitor}\n{current}" if previous_visitor else current
+
+
 def _gemini_request(messages: list[ChatMessage]) -> str:
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
@@ -550,6 +578,8 @@ async def _answer_with_fallback(messages: list[ChatMessage]) -> str:
     starts in parallel and whichever succeeds first wins, so a slow or failing Groq
     is covered without making every request wait for both.
     """
+    if _asks_for_project_overview(messages[-1].content):
+        return PROJECT_OVERVIEW_ANSWER
     groq_configured = bool(os.getenv("GROQ_API_KEY", "").strip())
     gemini_configured = bool(os.getenv("GEMINI_API_KEY", "").strip())
     if not groq_configured and not gemini_configured:
