@@ -1,0 +1,15 @@
+{
+  "techStack": [
+    { "name": "Languages", "items": ["Java", "C#", "Python"] },
+    { "name": "Frontend", "items": ["HTML", "CSS", "React", "Next.js"] },
+    { "name": "Backend", "items": ["Node.js", "ASP.NET", "FastAPI"] },
+    { "name": "Data", "items": ["SQL", "Supabase"] },
+    { "name": "Desktop", "items": ["JavaFX"] }
+  ],
+  "projectTechnologies": {
+    "forge": ["Java", "JavaFX", "SQLite", "CSS"],
+    "portfolio-studio": ["React", "TypeScript", "Vite", "Supabase", "PostgreSQL", "Vercel", "Vitest"],
+    "thesa": ["Next.js", "Tiptap", "Supabase", "Python", "FastAPI", "Gemini", "IndexedDB"],
+    "netpath": ["JavaScript", "HTML", "CSS", "Node.js", "SQLite"]
+  }
+}

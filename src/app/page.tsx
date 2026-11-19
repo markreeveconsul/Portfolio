@@ -16,6 +16,20 @@ import { ChatMascot } from "@/components/chat-mascot";
 import { GithubActivity } from "@/components/github-activity";
 import { NetworkField } from "@/components/network-field";
 import { ArchWordmark } from "@/components/arch-wordmark";
+import { siteUrl } from "@/lib/site-url";
+
+const profileJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: profile.name,
+    jobTitle: profile.role,
+    description: profile.bio,
+    url: siteUrl.href,
+    sameAs: [profile.github],
+  },
+};
 
 const processSteps = ["Talk", "Design", "Build", "Revise", "Deliver"];
 
@@ -31,6 +45,7 @@ export default function HomePage() {
   const completedProjects = projects.filter((project) => project.status === "Completed").length;
   const statValue = (count: number) => (count ? String(count).padStart(2, "0") : "—");
   return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd).replace(/</g, "\\u003c") }} />
     <a className="sr-only focus:not-sr-only" href="#main">Skip to content</a>
     <Navbar />
     {/* Constellation behind the whole page (fixed, drifts with scroll, reacts to the cursor). */}
@@ -54,7 +69,7 @@ export default function HomePage() {
 
       <section className="section" id="about">
         <div className="about-grid">
-          <div className="about-copy"><p className="section-index" data-reveal="fade">02 / About</p><h2 data-reveal="lines">{profile.name}</h2><p data-reveal="fade">{profile.bio}</p>{profile.quote && <blockquote className="about-quote" data-reveal="fade">“{profile.quote}”</blockquote>}<div className="about-buttons" data-reveal="fade"><a className="button button-outline" href="#portfolio" data-magnetic="">Explore my work <span aria-hidden="true">&#x2198;&#xFE0E;</span></a></div></div>
+          <div className="about-copy"><p className="section-index" data-reveal="fade">02 / About</p><h2 data-reveal="lines">{profile.name}</h2><p data-reveal="fade">{profile.bio}</p>{profile.quote && <blockquote className="about-quote" data-reveal="fade">“{profile.quote}”</blockquote>}<div className="about-buttons" data-reveal="fade"><a className="button button-outline" href="#portfolio" data-magnetic="">Explore my work <span aria-hidden="true">&#x2198;&#xFE0E;</span></a><a className="button button-outline" href="/files/mark-reeve-consul-cv.pdf" download aria-label="Download Mark Reeve Consul’s CV as a PDF">Download CV <span aria-hidden="true">↓</span></a></div></div>
           <div className="profile-side" data-reveal="stagger"><div className="portrait-ring"><Image src="/images/about-pic.jpg" alt="Portrait of Mark Reeve Consul" width={640} height={640} /></div><div className="stats">
             <PortfolioJump tab="projects" className="stat-card glass-card"><span className="stat-number" data-count={projects.length}>{statValue(projects.length)}</span><span className="stat-label">Projects</span></PortfolioJump>
             <PortfolioJump tab="certificates" className="stat-card glass-card"><span className="stat-number" data-count={certificates.length}>{statValue(certificates.length)}</span><span className="stat-label">Certificates</span></PortfolioJump>

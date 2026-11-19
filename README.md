@@ -18,11 +18,12 @@ The contact form validates messages locally. To deliver messages, copy `.env.exa
 
 ## Deploy on Vercel
 
-Import the repository into Vercel and deploy it as a Next.js project. Add `FORMSPREE_ENDPOINT` in Vercel project environment variables if you want the contact form to deliver email. Set `NEXT_PUBLIC_SITE_URL` to the canonical site URL for sitemap and robots metadata.
+Import the repository into Vercel and deploy it as a Next.js project. Add `FORMSPREE_ENDPOINT` in Vercel project environment variables if you want the contact form to deliver email. The portfolio is preconfigured for the planned canonical domain `https://consul.dev`; after purchasing the domain, add it to the Vercel project, point its DNS records to Vercel, and set `NEXT_PUBLIC_SITE_URL` to `https://consul.dev` in the production environment.
 
 ## Update portfolio content
 
 - Profile, contact links, and personal details: `src/data/profile.ts`
+- Downloadable CV PDF: `public/files/mark-reeve-consul-cv.pdf`
 - Project copy, status, public technologies, features, and links: `src/data/projects.ts`
 - Certificates and image paths: `src/data/certificates.ts`
 - Public languages and frameworks only: `src/data/techstack.ts`
@@ -34,6 +35,6 @@ AI tools and model details are deliberately omitted from the public tech stack. 
 
 The optional FastAPI service lives in `backend/`. It exposes `GET /health`, `POST /api/chat`, and `POST /api/leads/confirm`. Chat requests are stateless: the browser may send a short bounded transcript, and the service does not save it. Gemini requests set `store: false`. Lead emails are sent only after the visitor opts in and confirms the final summary; email content contains the structured inquiry, not the chat transcript.
 
-To run locally, create a virtual environment in `backend/.venv`, install `backend/requirements.txt`, copy `backend/.env.example` to `backend/.env`, and set your private Gemini key there. You can also add a Groq key to enable a delayed backup: Gemini starts first, and Groq starts after `AI_FALLBACK_DELAY_SECONDS` if Gemini has not answered or fails. The first successful answer is returned. Set both keys only in the backend environment file; never expose them in frontend code. Start the service from `backend/` with `python -m uvicorn app.main:app --reload --port 8000`. Lead delivery remains disabled until the private SMTP and recipient settings are configured. Set `PORTFOLIO_ORIGINS` to the exact frontend origins you use.
+To run locally, create a virtual environment in `backend/.venv`, install `backend/requirements.txt`, copy `backend/.env.example` to `backend/.env`, and set your private Gemini key there. You can also add a Groq key: Groq is tried first, and Gemini starts after `AI_FALLBACK_DELAY_SECONDS` if Groq has not answered or fails. The first successful answer is returned. When both keys are configured, a slow request can be sent to both providers. Set both keys only in the backend environment file; never expose them in frontend code. Start the service from `backend/` with `python -m uvicorn app.main:app --reload --port 8000`. Lead delivery remains disabled until the private SMTP and recipient settings are configured. Set `PORTFOLIO_ORIGINS` to the exact frontend origins you use, including the production site origin.
 
-The chatbot retrieves relevant entries from a small local portfolio knowledge base before calling a provider. Suggested questions in the panel use fixed approved answers locally and do not call an AI provider. When the delayed Groq fallback is triggered, the visitor’s recent chat and the same approved portfolio context are sent to Groq too; make this clear in the panel privacy note. Update `KNOWLEDGE_BASE` in `backend/app/main.py` when public project details are confirmed.
+The chatbot retrieves relevant entries from a small local portfolio knowledge base before calling a provider. Suggested questions in the panel use fixed approved answers locally and do not call an AI provider. The backend does not save chat history. When Gemini is configured, recent visitor messages are sent to Gemini for semantic search; Groq and/or Gemini may also receive them to generate a reply. The API ignores client-supplied assistant messages and uses only visitor messages as conversation context. API requests have body-size limits, exact-origin checks, and per-process rate/concurrency limits; configure an edge/API gateway limit for multi-instance deployments. Update `KNOWLEDGE_BASE` in `backend/app/main.py` when public project details are confirmed.
