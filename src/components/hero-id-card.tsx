@@ -153,7 +153,14 @@ function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; r
     {!placeholderGone && <CardMaterialize leaving={ready} />}
     <button ref={buttonRef} className={`css-flat-card is-spinning${ready ? " is-ready" : " is-waiting"}`} type="button" aria-label={faceBack ? "Show the front of Mark’s card" : "Flip card to see the system profile"} onClick={flip} disabled={!ready}>
       <span ref={innerRef} className="css-flat-card-inner">
-        <span className="css-flat-face css-flat-front">{images && <img src={images.front} alt="Front of Mark Reeve Consul’s portfolio ID card" />}<span className="css-irid-rule" aria-hidden="true" /></span>
+<span className="css-flat-face css-flat-front">
+  {images && (
+   <img src={images.front} alt="Front of Mark Reeve Consul's portfolio ID card" style={{ filter: "grayscale(1)" }} />
+
+  )}
+  <span className="css-irid-rule" aria-hidden="true" />
+</span>
+
         <span className="css-flat-face css-flat-back">{images && <img src={images.back} alt="Back of Mark Reeve Consul’s portfolio ID card, showing his system profile" />}</span>
       </span>
     </button>
