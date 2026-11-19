@@ -23,9 +23,9 @@ export function getQrDataUrl(): Promise<string> {
       margin: 4,
       width: 320,
       color: { dark: "#121418", light: "#ECEAE4" },
-    });
+    }) as Promise<string>;
   }
-  return cachedQrDataUrl;
+  return cachedQrDataUrl as Promise<string>;
 }
 
 let cachedFaces: Promise<CardFaceCanvases> | null = null;
