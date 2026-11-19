@@ -23,6 +23,7 @@ Import the repository into Vercel and deploy it as a Next.js project. Add `FORMS
 ## Update portfolio content
 
 - Profile, contact links, and personal details: `src/data/profile.ts`
+- Downloadable CV PDF: `public/files/mark-reeve-consul-cv.pdf`
 - Project copy, status, public technologies, features, and links: `src/data/projects.ts`
 - Certificates and image paths: `src/data/certificates.ts`
 - Public languages and frameworks only: `src/data/techstack.ts`
