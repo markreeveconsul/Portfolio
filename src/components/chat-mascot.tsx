@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { assistantBaseUrl } from "@/lib/assistant";
 import { useAfterBoot } from "@/lib/motion";
+import { techStack } from "@/data/techstack";
+
+const publicTechAnswer = `The portfolio’s public tech list is: ${techStack.map(({ name, items }) => `${name}: ${items.join(", ")}`).join("; ")}. Project pages list tools used in each project.`;
 
 /** Throws a friendly error when no backend is configured for this deployment. */
 function requireAssistant() {
@@ -58,9 +61,9 @@ function localAnswerFor(rawQuestion: string): { answer: string; openInquiry?: bo
   const asksOverview = /^(what is|whats|tell me about|describe|give me an overview of) /.test(question);
   if (asksOverview && /\bforge\b/.test(question)) return { answer: "FORGE is a completed JavaFX desktop e-commerce app for a tech shop, built on SQLite, with search, filters, a cart, checkout, order history, and an admin editor. AI features are in progress." };
   if (asksOverview && /\b(portfolio studio|folio)\b/.test(question)) return { answer: "Portfolio Studio is a completed full stack web app where students build a private portfolio from five templates, using React, TypeScript, Vite, and Supabase. It’s live at myfolio-studio.vercel.app." };
-  if (asksOverview && /\bthesa\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further details haven’t been confirmed yet." };
-  if (asksOverview && /\bnetpath\b/.test(question)) return { answer: "NetPath is an in-progress web app for learning networking, with a simulation sandbox. Its specific topics are still to be confirmed." };
-  if (/^(what skills does mark have|what is mark good at|what technologies does mark use|what is marks tech stack|what is mark s tech stack)$/.test(question)) return { answer: "Mark builds websites and small tools. Technologies used across his projects include Java and JavaFX, React and TypeScript, and Supabase/PostgreSQL. He also uses Arch Linux." };
+  if (asksOverview && /\bthesa\b/.test(question)) return { answer: "Thesa is an in-progress thesis workspace with chapter writing, PDF/DOCX/TXT source reading, autosave, and a local-preview Gemini assistant that answers from sources with file/page citations. Cloud imports need a database migration; citation insertion and DOCX/PDF export are unfinished." };
+  if (asksOverview && /\bnetpath\b/.test(question)) return { answer: "NetPath is an in-progress local-only networking classroom with lessons, practice questions, subnetting/VLSM tools, Packet Tracer companion labs, and a network sandbox. It is not hosted; cloud sync, AI tutoring, and live Packet Tracer integration are not included." };
+  if (/^(what skills does mark have|what is mark good at|what technologies does mark use|what is marks tech stack|what is mark s tech stack|give me the complete list of tech mark uses)$/.test(question)) return { answer: `Mark builds websites and small tools. ${publicTechAnswer}` };
   if (/^(who is mark|tell me about mark|what is marks background|what is mark s background)$/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools. He's junior, still learning, and open to internships, collabs, and opportunities." };
   if (/^(is mark available|is mark open to internships|is mark open to collaborations)$/.test(question)) return { answer: "Mark is open to internships, collabs, and other opportunities where he can get real experience." };
   if (/^(what services does mark offer|what can mark build|how much does mark charge|what are marks prices)$/.test(question)) return { answer: "Mark builds research projects, capstone projects, and smaller web apps and tools. Prices and timelines are discussed per project." };
@@ -90,7 +93,7 @@ const QUICK_ANSWERS = [
   },
   {
     question: "What is Mark good at?",
-    answer: "Mark builds websites and small tools. Technologies used across his projects include Java and JavaFX, React and TypeScript, and Supabase/PostgreSQL. He also uses Arch Linux.",
+    answer: `Mark builds websites and small tools. ${publicTechAnswer}`,
   },
   {
     question: "What is FORGE?",

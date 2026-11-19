@@ -41,6 +41,14 @@ def _load_local_env() -> None:
 
 _load_local_env()
 
+with open(os.path.join(os.path.dirname(__file__), "portfolio_facts.json"), encoding="utf-8") as facts_file:
+    PORTFOLIO_FACTS = json.load(facts_file)
+
+PUBLIC_TECH_STACK = "; ".join(
+    f"{group['name']}: {', '.join(group['items'])}"
+    for group in PORTFOLIO_FACTS["techStack"]
+)
+
 APP_NAME = "Portfolio Assistant API"
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/interactions"
 
@@ -50,6 +58,11 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 # Small, approved local corpus. Retrieval runs in this backend and sends only
 # the best matching entries to the model; add entries only as facts are confirmed.
 KNOWLEDGE_BASE = [
+    {
+        "id": "tech-stack",
+        "keywords": "skills technology technologies tech stack language framework frontend backend data database desktop java c sharp c# python html css react nextjs node asp.net fastapi sql supabase javafx",
+        "content": f"The portfolio's curated public tech list is {PUBLIC_TECH_STACK}. This list shows technologies Mark has used; it does not claim equal proficiency in every item. Project pages identify tools used in each individual project.",
+    },
     {
         "id": "profile",
         "keywords": "owner name who mark reeve consul role about student developer it second year cebu websites tools junior learning availability internship collab opportunities",
@@ -73,12 +86,12 @@ KNOWLEDGE_BASE = [
     {
         "id": "thesa",
         "keywords": "project projects work portfolio thesa thesis assistant ai artificial intelligence document documents pdf pdfs upload uploaded questions answers q and a in progress",
-        "content": "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further implementation details are not confirmed yet.",
+        "content": "Thesa is an in-progress thesis-writing workspace with a five-chapter template or blank outline, rich-text chapter editor, citation-style preference (APA/MLA/IEEE), PDF/DOCX/TXT source reading, autosave and recovery, and a local-preview Gemini source assistant that retrieves passages and cites file/page locations. Cloud source imports need the latest database migration; citation insertion and DOCX/PDF export are unfinished. Technologies used: " + ", ".join(PORTFOLIO_FACTS["projectTechnologies"]["thesa"]) + ".",
     },
     {
         "id": "netpath",
         "keywords": "project projects work portfolio netpath networking network learning web app simulation sandbox in progress",
-        "content": "NetPath is an in-progress web app for learning networking, with a simulation sandbox. The specific topics and sandbox capabilities are not confirmed yet.",
+        "content": "NetPath is an in-progress, local-only, offline-capable single-user networking classroom; it is not a hosted website. It includes 37 lessons across eight modules, 181 practice questions, subnetting and VLSM tools, 18 Packet Tracer companion labs, an IOS-style VLAN sandbox, and SQLite progress/backups. Cloud sync, AI tutoring, live Packet Tracer integration, and full CCNA curriculum coverage are not included. Technologies used: " + ", ".join(PORTFOLIO_FACTS["projectTechnologies"]["netpath"]) + ".",
     },
     {
         "id": "services",
@@ -205,6 +218,12 @@ SYSTEM_INSTRUCTION = (
 
 def retrieve_portfolio_context(question: str, limit: int = 3) -> str:
     """Select relevant approved facts: semantic (embeddings) first, keyword as fallback."""
+    # Keep broad stack questions on the single curated tech fact instead of
+    # mixing in profile entries just because the visitor mentioned Mark.
+    if re.search(r"\b(tech|technology|technologies|stack|skills)\b", question.lower()) and not re.search(
+        r"\b(forge|portfolio studio|folio|thesa|netpath)\b", question.lower()
+    ):
+        return next(entry["content"] for entry in KNOWLEDGE_BASE if entry["id"] == "tech-stack")
     semantic = _semantic_context(question, limit)
     if semantic is not None:
         return semantic

@@ -16,6 +16,20 @@ import { ChatMascot } from "@/components/chat-mascot";
 import { GithubActivity } from "@/components/github-activity";
 import { NetworkField } from "@/components/network-field";
 import { ArchWordmark } from "@/components/arch-wordmark";
+import { siteUrl } from "@/lib/site-url";
+
+const profileJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: profile.name,
+    jobTitle: profile.role,
+    description: profile.bio,
+    url: siteUrl.href,
+    sameAs: [profile.github],
+  },
+};
 
 const processSteps = ["Talk", "Design", "Build", "Revise", "Deliver"];
 
@@ -31,6 +45,7 @@ export default function HomePage() {
   const completedProjects = projects.filter((project) => project.status === "Completed").length;
   const statValue = (count: number) => (count ? String(count).padStart(2, "0") : "—");
   return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd).replace(/</g, "\\u003c") }} />
     <a className="sr-only focus:not-sr-only" href="#main">Skip to content</a>
     <Navbar />
     {/* Constellation behind the whole page (fixed, drifts with scroll, reacts to the cursor). */}

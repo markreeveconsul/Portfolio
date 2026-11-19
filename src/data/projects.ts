@@ -1,3 +1,5 @@
+import portfolioFacts from "../../backend/app/portfolio_facts.json";
+
 export type ProjectStatus = "Completed" | "In progress";
 
 /**
@@ -50,7 +52,7 @@ export const projects: PortfolioProject[] = [
     description: "A JavaFX desktop e-commerce application for a small technology shop, built on SQLite.",
     status: "Completed",
     featured: true,
-    technologies: ["Java", "JavaFX", "SQLite", "CSS"],
+    technologies: portfolioFacts.projectTechnologies.forge,
     features: [
       "Product search and filters",
       "Cart drawer and checkout with two payment methods",
@@ -87,7 +89,7 @@ export const projects: PortfolioProject[] = [
     summary: "A web app where students create, save and customize a private portfolio from five templates.",
     description: "A full stack web app for student portfolios. Portfolio details and photos are visible only to their owner and authorized admins.",
     status: "Completed",
-    technologies: ["React", "TypeScript", "Vite", "Supabase", "PostgreSQL", "Vercel", "Vitest"],
+    technologies: portfolioFacts.projectTechnologies["portfolio-studio"],
     features: [
       "Five portfolio templates",
       "Email and Google sign-in",
@@ -121,36 +123,73 @@ export const projects: PortfolioProject[] = [
   {
     slug: "thesa",
     name: "Thesa",
-    eyebrow: "AI assistant · In progress",
-    summary: "An AI thesis assistant that answers questions about uploaded documents and PDFs.",
-    description: "An in-progress thesis assistant that answers questions about uploaded documents and PDFs. A fuller walkthrough can be added as the project develops.",
+    eyebrow: "Thesis workspace · In progress",
+    summary: "A thesis-writing workspace that keeps chapters and research sources together, with a cited AI source-chat preview.",
+    description: "An in-progress thesis workspace with a structured editor, source uploads and reading, autosave, and an AI assistant that answers from selected sources with passage citations.",
     status: "In progress",
     aiIntegrated: true,
-    technologies: ["Document Q&A", "PDFs"],
-    features: ["Question answering over uploaded documents and PDFs", "Document upload"],
+    technologies: portfolioFacts.projectTechnologies.thesa,
+    features: [
+      "Start from a five-chapter thesis template or a blank outline, with APA, MLA, or IEEE preference",
+      "Rich-text chapter editor with footnotes, tables, find/replace, and word count",
+      "Upload and read PDF, DOCX, and TXT sources, with page navigation and text search",
+      "Preview an AI source assistant that answers from retrieved passages and links back to the source page",
+      "Autosave, revision-conflict recovery, browser drafts, and JSON chapter backups",
+    ],
     image: "/images/thesa-screenshots/thesa1.png",
     imageAlt: "Screenshot of Thesa, the AI thesis assistant",
     githubUrl: "https://github.com/markreeveconsul/Thesa",
     repo: "markreeveconsul/Thesa",
     caseStudy: {
-      gallery: [1, 2, 3].map((n) => ({ src: `/images/thesa-screenshots/thesa${n}.png`, alt: `Thesa screenshot ${n}` })),
+      role: "Developer",
+      problem: "Keep the research question, chapter drafts, and source material together while making answers traceable to the documents being read.",
+      approach: [
+        "Built a chapter-based writing workspace with a rich-text editor, a five-chapter template, and citation-style preferences.",
+        "Added document upload and reading for PDF, DOCX, and TXT files, including page navigation and text search.",
+        "Connected a local-preview Gemini assistant to semantic and keyword search over selected sources; answers include a quotation and a file/page location.",
+        "Added autosave, revision-conflict handling, browser-draft recovery, and JSON backups.",
+      ],
+      outcome: "The local preview supports writing, source reading, and cited source Q&A. The assistant is a local preview; cloud source imports still need the latest database migration, and citation insertion plus DOCX/PDF export remain unfinished.",
+      gallery: [
+        { src: "/images/thesa-screenshots/thesa1.png", alt: "Thesa sign-in page beside an illustrated preview of its source-backed writing workspace", caption: "Sign-in and product introduction." },
+        { src: "/images/thesa-screenshots/thesa2.png", alt: "Thesa dashboard for starting a thesis from a research problem and choosing citation style and structure", caption: "New thesis setup with a research problem, citation style, and outline choice." },
+        { src: "/images/thesa-screenshots/thesa3.png", alt: "Thesa chapter editor with research sources and the Otto assistant", caption: "Chapter writing and source assistance." },
+      ],
     },
   },
   {
     slug: "netpath",
     name: "NetPath",
-    eyebrow: "Learning web app · In progress",
-    summary: "A web app for learning networking, with a simulation sandbox.",
-    description: "An in-progress web app for learning networking concepts, with a simulation sandbox. A fuller walkthrough can be added as the project develops.",
+    eyebrow: "Local learning app · In progress",
+    summary: "A local networking classroom for CCNA practice, with original lessons, subnetting tools, Packet Tracer companion labs, and a network sandbox.",
+    description: "An offline-capable, single-user networking classroom with lessons, practice tools, and Packet Tracer companion guides. It runs locally and is not a hosted website.",
     status: "In progress",
-    technologies: ["Web app", "Networking education"],
-    features: ["Networking learning experience", "Simulation sandbox"],
+    technologies: portfolioFacts.projectTechnologies.netpath,
+    features: [
+      "37 lessons across eight modules and 181 original practice questions",
+      "IPv4 subnetting trainer and saved VLSM planner",
+      "Hands-on network sandbox with editable device configurations",
+      "18 Packet Tracer companion labs and an IOS-style VLAN command sandbox",
+      "Local SQLite progress, recovery snapshots, and JSON backup export/import",
+    ],
     image: "/images/netpath-screenshots/netpath1.png",
     imageAlt: "Screenshot of NetPath, the networking learning web app",
     githubUrl: "https://github.com/markreeveconsul/NetPath",
     repo: "markreeveconsul/NetPath",
     caseStudy: {
-      gallery: [1, 2, 3].map((n) => ({ src: `/images/netpath-screenshots/netpath${n}.png`, alt: `NetPath screenshot ${n}` })),
+      role: "Developer",
+      problem: "Make networking practice more hands-on and easier to revisit, including when working offline or without a paid service.",
+      approach: [
+        "Created original lessons, timed practice sessions, review cards, and a study plan around networking fundamentals and CCNA topics.",
+        "Built a subnetting trainer, VLSM planner, and a bounded IOS-style VLAN command sandbox.",
+        "Added a visual network sandbox, Packet Tracer companion guides, and a local SQLite API for saving progress and backups.",
+      ],
+      outcome: "The current local release includes lessons, practice tools, and saved progress. It is single-user and local-only; cloud sync, AI tutoring, live Packet Tracer integration, and full CCNA curriculum coverage are not included.",
+      gallery: [
+        { src: "/images/netpath-screenshots/netpath1.png", alt: "NetPath local networking classroom dashboard with a lesson card and visual lab guide", caption: "The local classroom dashboard and learning path." },
+        { src: "/images/netpath-screenshots/netpath2.png", alt: "NetPath network sandbox with connected PCs, switches, routers, and a device configuration inspector", caption: "Editable network topology and device configuration." },
+        { src: "/images/netpath-screenshots/netpath3.png", alt: "NetPath networking practice screen", caption: "Networking practice tools." },
+      ],
     },
   },
 ];

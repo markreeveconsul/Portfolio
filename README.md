@@ -18,7 +18,7 @@ The contact form validates messages locally. To deliver messages, copy `.env.exa
 
 ## Deploy on Vercel
 
-Import the repository into Vercel and deploy it as a Next.js project. Add `FORMSPREE_ENDPOINT` in Vercel project environment variables if you want the contact form to deliver email. Set `NEXT_PUBLIC_SITE_URL` to the canonical site URL for sitemap and robots metadata.
+Import the repository into Vercel and deploy it as a Next.js project. Add `FORMSPREE_ENDPOINT` in Vercel project environment variables if you want the contact form to deliver email. The portfolio is preconfigured for the planned canonical domain `https://consul.dev`; after purchasing the domain, add it to the Vercel project, point its DNS records to Vercel, and set `NEXT_PUBLIC_SITE_URL` to `https://consul.dev` in the production environment.
 
 ## Update portfolio content
 

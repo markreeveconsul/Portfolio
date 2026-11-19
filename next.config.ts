@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   turbopack: { root: process.cwd() },
   images: {
-    unoptimized: true,
     domains: [],
   },
   async headers() {
