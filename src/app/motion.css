@@ -161,11 +161,10 @@ html.lenis{scroll-behavior:auto}
 .cursor-ring{position:fixed;left:0;top:0;z-index:200;display:grid;place-items:center;width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid rgba(236,234,228,.5);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s,width .45s var(--ease-out),height .45s var(--ease-out),margin .45s var(--ease-out),background-color .3s,border-color .3s}
 .cursor-ring.is-visible{opacity:1}
 .cursor-ring.is-hover{width:52px;height:52px;margin:-26px 0 0 -26px;border-color:rgba(236,234,228,.85);background:rgba(236,234,228,.05)}
-.cursor-ring.has-label{width:76px;height:76px;margin:-38px 0 0 -38px;border-color:transparent;background:rgba(236,234,228,.94)}
 .cursor-ring.is-pressed{width:24px;height:24px;margin:-12px 0 0 -12px}
 .cursor-ring.is-hidden{opacity:0}
 .cursor-label{color:#0b0c10;font:700 9px var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:0;transition:opacity .2s}
-.cursor-ring.has-label .cursor-label{opacity:1}
+
 
 /* ---------- Links & buttons ---------- */
 .details-link,.back-link{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;padding-bottom:3px;transition:background-size .5s var(--ease-out),color .2s}
@@ -205,7 +204,7 @@ html.lenis{scroll-behavior:auto}
 /* Boot wordmark + footer: clamp aggressively so MARK never overflows on phones. */
 @media(max-width:680px){
   .boot-word{font-size:clamp(52px,18vw,120px)}
-  .footer-big{font-size:clamp(52px,15vw,120px)}
+   .footer-big{font-size:clamp(52px,15vw,120px);text-align:center}
   .marquee-item{font-size:clamp(20px,7vw,32px)}
 }
 @media(max-width:480px){

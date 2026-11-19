@@ -81,7 +81,6 @@ export function PointerEffects() {
         const text = hint ?? interactive?.closest<HTMLElement>("[data-cursor]")?.dataset.cursor ?? "";
         ring.classList.toggle("is-hidden", typing);
         ring.classList.toggle("is-hover", Boolean(interactive || hint));
-        ring.classList.toggle("has-label", Boolean(text));
         if (label.textContent !== text) label.textContent = text;
       };
 
