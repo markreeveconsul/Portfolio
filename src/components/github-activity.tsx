@@ -25,7 +25,7 @@ export async function GithubActivity({ user, profileUrl }: { user: string; profi
   if (!data) {
     return <div className="gh-fallback glass-card" data-reveal="fade">
       <p>Live activity is unavailable right now.</p>
-      <a className="button button-outline" href={profileUrl} target="_blank" rel="noreferrer" data-magnetic="">View GitHub profile <span aria-hidden="true">↗</span></a>
+      <a className="button button-outline" href={profileUrl} target="_blank" rel="noreferrer" data-magnetic="">View GitHub profile <span aria-hidden="true">&#x2197;&#xFE0E;</span></a>
     </div>;
   }
 
@@ -76,11 +76,11 @@ export async function GithubActivity({ user, profileUrl }: { user: string; profi
     </div>
 
     <div className="gh-repos">
-      <div className="gh-repos-head"><span className="gh-subhead">Recently pushed</span><a className="details-link" href={data.profileUrl} target="_blank" rel="noreferrer">All repositories <span aria-hidden="true">↗</span></a></div>
+      <div className="gh-repos-head"><span className="gh-subhead">Recently pushed</span><a className="details-link" href={data.profileUrl} target="_blank" rel="noreferrer">All repositories <span aria-hidden="true">&#x2197;&#xFE0E;</span></a></div>
       <ul className="gh-repo-list" data-reveal="stagger">
         {data.recentRepos.map((repo) => <li key={repo.name}>
           <a className="gh-repo glass-card" href={repo.url} target="_blank" rel="noreferrer" data-spotlight="" data-cursor="open">
-            <span className="gh-repo-name">{repo.name}<span aria-hidden="true">↗</span></span>
+            <span className="gh-repo-name">{repo.name}<span aria-hidden="true">&#x2197;&#xFE0E;</span></span>
             {repo.description && <span className="gh-repo-desc">{repo.description}</span>}
             <span className="gh-repo-meta">
               {repo.language && <span><i style={{ background: languageColor(repo.language) }} aria-hidden="true" />{repo.language}</span>}
