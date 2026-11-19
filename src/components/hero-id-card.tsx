@@ -155,10 +155,10 @@ function CssIdCard({ faces, reducedMotion }: { faces: CardFaceCanvases | null; r
       <span ref={innerRef} className="css-flat-card-inner">
 <span className="css-flat-face css-flat-front">
   {images && (
-   <img src={images.front} alt="Front of Mark Reeve Consul's portfolio ID card" style={{ filter: "grayscale(1)" }} />
+   <img src={images.front} alt="Front of Mark Reeve Consul's portfolio ID card" />
 
   )}
-  <span className="css-irid-rule" aria-hidden="true" />
+
 </span>
 
         <span className="css-flat-face css-flat-back">{images && <img src={images.back} alt="Back of Mark Reeve Consul’s portfolio ID card, showing his system profile" />}</span>

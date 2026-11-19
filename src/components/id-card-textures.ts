@@ -130,9 +130,23 @@ function drawGrayscalePhoto(ctx: CanvasRenderingContext2D, image: HTMLImageEleme
     const ratio = Math.max(width / image.width, height / image.height);
     const drawWidth = image.width * ratio;
     const drawHeight = image.height * ratio;
-    ctx.filter = "grayscale(1)";
-    ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
-    ctx.filter = "none";
+    const drawX = x + (width - drawWidth) / 2;
+    const drawY = y + (height - drawHeight) / 2;
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    // Convert pixels explicitly: iOS Safari and desktop browsers then use the same grayscale photo.
+    const scale = cardFacePixels.scale;
+    const left = Math.round(x * scale);
+    const top = Math.round(y * scale);
+    const pixelWidth = Math.round(width * scale);
+    const pixelHeight = Math.round(height * scale);
+    const photoPixels = ctx.getImageData(left, top, pixelWidth, pixelHeight);
+    for (let pixel = 0; pixel < photoPixels.data.length; pixel += 4) {
+      const luminance = Math.round(photoPixels.data[pixel] * 0.2126 + photoPixels.data[pixel + 1] * 0.7152 + photoPixels.data[pixel + 2] * 0.0722);
+      photoPixels.data[pixel] = luminance;
+      photoPixels.data[pixel + 1] = luminance;
+      photoPixels.data[pixel + 2] = luminance;
+    }
+    ctx.putImageData(photoPixels, left, top);
   } else {
     ctx.fillStyle = "#1A1D22";
     ctx.fillRect(x, y, width, height);
