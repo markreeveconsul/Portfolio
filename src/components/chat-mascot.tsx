@@ -48,21 +48,23 @@ function completedConversation(source: ChatMessage[]): ChatMessage[] {
 function localAnswerFor(rawQuestion: string): { answer: string; openInquiry?: boolean } | null {
   const question = rawQuestion.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
   // Instant, correct answers for the most common questions, so they never depend
-  // on the AI providers. Anything not matched here falls through to the AI.
-  if (/^(hi|hey|hello|yo|sup|howdy|hiya|good (morning|afternoon|evening))\b/.test(question) || question === "hi" || question === "hello") {
+  // on the AI providers. Keep these patterns narrow; other phrasings go to the
+  // grounded backend instead of receiving a possibly unrelated canned answer.
+  if (/^(hi|hey|hello|yo|sup|howdy|hiya|good morning|good afternoon|good evening)$/.test(question)) {
     return { answer: "Hey! I’m Mark’s assistant. Ask me about his projects, skills, or background, or tell me what you’re looking to build." };
   }
-  const asksForContact = /\b(contact|hire|quote|inquir|email|reach|talk|start a project|work together)\b/.test(question);
+  const asksForContact = /^(how can i contact mark|how do i contact mark|how can i reach mark|what is marks email|what is mark s email|what is marks email address|what is mark s email address|how can i hire mark|i want to hire mark|how do i start a project inquiry|start an inquiry)$/.test(question);
   if (asksForContact) return { answer: "You can email Mark at markreeveconsul@gmail.com, or I can help you prepare a project inquiry right here. Add your details in the form and review it before sending.", openInquiry: true };
-  if (/\b(forge)\b/.test(question)) return { answer: "FORGE is a completed JavaFX desktop e-commerce app for a tech shop, built on SQLite, with search, filters, a cart, checkout, order history, and an admin editor. AI features are in progress." };
-  if (/\b(portfolio studio|folio)\b/.test(question)) return { answer: "Portfolio Studio is a completed full stack web app where students build a private portfolio from five templates, using React, TypeScript, Vite, and Supabase. It’s live at myfolio-studio.vercel.app." };
-  if (/\b(thesa)\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further details haven’t been confirmed yet." };
-  if (/\b(netpath)\b/.test(question)) return { answer: "NetPath is an in-progress web app for learning networking, with a simulation sandbox. Its specific topics are still to be confirmed." };
-  if (/\b(skill|skills|good at|strength|stack|technolog|language)\b/.test(question)) return { answer: "Mark builds websites and small tools. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux." };
-  if (/\b(who|about|yourself|mark)\b/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools. He's junior, still learning, and open to internships, collabs, and opportunities." };
-  if (/\b(freelance|available|availability|internship|job|hire|opportunit|collab)\b/.test(question)) return { answer: "Mark is open to internships, collabs, and other opportunities where he can get real experience." };
-  if (/\b(service|services|offer|offers|pricing|price|cost|timeline|budget|build)\b/.test(question)) return { answer: "Mark builds research projects, capstone projects, and smaller web apps and tools. Prices and timelines are discussed per project." };
-  if (/\b(project|projects|portfolio|featured|work)\b/.test(question)) return { answer: "Mark’s projects are FORGE (completed), Portfolio Studio (completed), Thesa (in progress), and NetPath (in progress)." };
+  const asksOverview = /^(what is|whats|tell me about|describe|give me an overview of) /.test(question);
+  if (asksOverview && /\bforge\b/.test(question)) return { answer: "FORGE is a completed JavaFX desktop e-commerce app for a tech shop, built on SQLite, with search, filters, a cart, checkout, order history, and an admin editor. AI features are in progress." };
+  if (asksOverview && /\b(portfolio studio|folio)\b/.test(question)) return { answer: "Portfolio Studio is a completed full stack web app where students build a private portfolio from five templates, using React, TypeScript, Vite, and Supabase. It’s live at myfolio-studio.vercel.app." };
+  if (asksOverview && /\bthesa\b/.test(question)) return { answer: "Thesa is an in-progress AI thesis assistant that answers questions about uploaded documents and PDFs. Further details haven’t been confirmed yet." };
+  if (asksOverview && /\bnetpath\b/.test(question)) return { answer: "NetPath is an in-progress web app for learning networking, with a simulation sandbox. Its specific topics are still to be confirmed." };
+  if (/^(what skills does mark have|what is mark good at|what technologies does mark use|what is marks tech stack|what is mark s tech stack)$/.test(question)) return { answer: "Mark builds websites and small tools. Technologies used across his projects include Java and JavaFX, React and TypeScript, and Supabase/PostgreSQL. He also uses Arch Linux." };
+  if (/^(who is mark|tell me about mark|what is marks background|what is mark s background)$/.test(question)) return { answer: "Mark Reeve Consul is a 2nd-year IT student from Cebu who builds websites and small tools. He's junior, still learning, and open to internships, collabs, and opportunities." };
+  if (/^(is mark available|is mark open to internships|is mark open to collaborations)$/.test(question)) return { answer: "Mark is open to internships, collabs, and other opportunities where he can get real experience." };
+  if (/^(what services does mark offer|what can mark build|how much does mark charge|what are marks prices)$/.test(question)) return { answer: "Mark builds research projects, capstone projects, and smaller web apps and tools. Prices and timelines are discussed per project." };
+  if (/^(what projects has mark built|what projects are in marks portfolio|show me marks projects)$/.test(question)) return { answer: "Mark’s projects are FORGE (completed), Portfolio Studio (completed), Thesa (in progress), and NetPath (in progress)." };
   return null;
 }
 type LeadForm = {
@@ -88,7 +90,7 @@ const QUICK_ANSWERS = [
   },
   {
     question: "What is Mark good at?",
-    answer: "Mark builds websites and small tools. He works with Java, JavaFX, React, TypeScript, Supabase/PostgreSQL, and more, and he uses Arch Linux.",
+    answer: "Mark builds websites and small tools. Technologies used across his projects include Java and JavaFX, React and TypeScript, and Supabase/PostgreSQL. He also uses Arch Linux.",
   },
   {
     question: "What is FORGE?",
@@ -437,7 +439,7 @@ export function ChatMascot() {
               </div>
             )}
           </div>
-          <p className="chat-footer-note">Recent chat goes to Gemini and may also go to Groq if Gemini is slow. Don’t share sensitive information.</p>
+          <p className="chat-footer-note">When Gemini is configured, recent chat is sent there for portfolio search. Groq and/or Gemini may also process it to generate a reply. Don’t share passwords or sensitive information.</p>
         </section>
       )}
 
