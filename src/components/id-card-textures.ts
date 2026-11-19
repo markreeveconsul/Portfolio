@@ -12,6 +12,22 @@ import QRCode from "qrcode";
 
 export type CardFaceCanvases = { front: HTMLCanvasElement; back: HTMLCanvasElement };
 
+let cachedQrDataUrl: Promise<string> | null = null;
+
+/** Generates the portfolio QR code as a data URL (cached). Used by both the
+ *  card texture and the QR lightbox so the third-party qrserver.com API is never called. */
+export function getQrDataUrl(): Promise<string> {
+  if (!cachedQrDataUrl) {
+    cachedQrDataUrl = QRCode.toDataURL(PORTFOLIO_URL, {
+      errorCorrectionLevel: "M",
+      margin: 4,
+      width: 320,
+      color: { dark: "#121418", light: "#ECEAE4" },
+    });
+  }
+  return cachedQrDataUrl;
+}
+
 let cachedFaces: Promise<CardFaceCanvases> | null = null;
 
 function canvas2d(canvas: HTMLCanvasElement) {
@@ -336,12 +352,7 @@ async function createFaces(): Promise<CardFaceCanvases> {
   await document.fonts.load(`500 14px ${monoFont}`);
   await document.fonts.ready;
 
-  const qrData = await QRCode.toDataURL(PORTFOLIO_URL, {
-    errorCorrectionLevel: "M",
-    margin: 4,
-    width: 192,
-    color: { dark: idCardPalette.card, light: idCardPalette.ink },
-  });
+  const qrData = await getQrDataUrl();
   const qr = await loadImage(qrData);
   const photo = CARD_PHOTO_SRC ? await loadImage(CARD_PHOTO_SRC) : null;
   const arch = await loadImage(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(ARCH_LINUX_SVG)}`);

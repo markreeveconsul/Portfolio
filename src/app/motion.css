@@ -659,3 +659,11 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
    Targets all decorative spans (aria-hidden) and navigation arrows. */
 [aria-hidden="true"]{font-variant-emoji:text;-webkit-text-stroke:0}
 .scroll-arrow,.case-next-title span,.lead-back,.lightbox-nav{font-variant-emoji:text}
+
+/* QR code lightbox */
+.qr-lightbox{position:fixed;inset:0;z-index:350;display:grid;place-items:center;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:palette-fade .2s ease-out;cursor:pointer}.qr-lightbox-inner{position:relative;display:grid;gap:18px;justify-items:center;padding:28px;border:1px solid rgba(255,255,255,.14);border-radius:20px;background:rgba(18,20,28,.97);box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(168,230,240,.06);animation:palette-in .3s var(--ease-out);cursor:default}
+.qr-lightbox-inner img{display:block;border-radius:10px}
+.qr-lightbox-inner p{margin:0;color:var(--body);font:10px var(--mono);text-align:center;letter-spacing:.06em}
+.qr-lightbox-inner strong{color:var(--text);font-weight:500}
+.qr-lightbox-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;background:rgba(255,255,255,.04);color:var(--text);font:16px/1 var(--body-font);cursor:pointer;transition:background .18s}
+.qr-lightbox-close:hover{background:rgba(255,255,255,.1)}

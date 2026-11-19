@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import { idCardDimensions, idCardPalette, idCardRendering, CARD_RULE_Y_FRAC, PORTFOLIO_URL } from "@/data/id-card-design";
-import { getCardSurfaceNormalCanvas, type CardFaceCanvases } from "@/components/id-card-textures";
+import { getCardSurfaceNormalCanvas, getQrDataUrl, type CardFaceCanvases } from "@/components/id-card-textures";
 import { heroScrollState } from "@/lib/hero-scroll";
 
 const CARD_WIDTH = idCardDimensions.width;
@@ -446,6 +446,10 @@ export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; o
     window.setTimeout(() => setSpinning(true), CROSSFADE_MS);
   };
   const [qrOpen, setQrOpen] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (qrOpen && !qrUrl) getQrDataUrl().then(setQrUrl).catch(() => {});
+  }, [qrOpen, qrUrl]);
   useEffect(() => {
     if (!qrOpen) return;
     const close = (event: KeyboardEvent) => { if (event.key === "Escape") setQrOpen(false); };
@@ -466,7 +470,7 @@ export function HeroIdCardScene({ faces, onReady }: { faces: CardFaceCanvases; o
   const lightbox = qrOpen && typeof document !== "undefined" ? createPortal(
     <div className="qr-lightbox" role="dialog" aria-modal="true" aria-label="QR code enlarged" onClick={() => setQrOpen(false)}>
       <div className="qr-lightbox-inner" onClick={(e) => e.stopPropagation()}>
-        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(PORTFOLIO_URL)}&color=121418&bgcolor=ECEAE4`} alt="QR code linking to the portfolio" width={320} height={320} />
+        {qrUrl && <img src={qrUrl} alt="QR code linking to the portfolio" width={320} height={320} />}
         <p>Scan to open <strong>mark-consul-dev.vercel.app</strong></p>
         <button className="qr-lightbox-close" type="button" aria-label="Close QR code" onClick={() => setQrOpen(false)}>&#x2715;</button>
       </div>

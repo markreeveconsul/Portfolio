@@ -231,8 +231,11 @@ export function ChatMascot() {
     void askAssistant(failedPrompt);
   }
 
+  const leadOpenedAt = useRef(0);
+
   function openInquiryFromChat() {
     setLeadOpen(true);
+    leadOpenedAt.current = Date.now();
     setStateFor("idle");
   }
 
@@ -264,6 +267,12 @@ export function ChatMascot() {
 
   function reviewLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // Honeypot: bots fill in hidden fields; humans don't.
+    const form = event.currentTarget;
+    const honeypot = form.querySelector<HTMLInputElement>('input[name="website"]');
+    if (honeypot?.value) return; // silent drop
+    // Timing: reject if the form was submitted within 3 seconds of opening.
+    if (Date.now() - leadOpenedAt.current < 3000) return;
     setLeadReview(true);
     setLeadError("");
     setStateFor("idle");
@@ -373,7 +382,7 @@ export function ChatMascot() {
                   />
                   <button className="chat-send" type="submit" disabled={!draft.trim() || busy} aria-label="Send message">↑</button>
                 </form>
-                <button className="chat-inquiry-link" type="button" onClick={() => { setLeadOpen(true); setStateFor("idle"); }}>
+                <button className="chat-inquiry-link" type="button" onClick={() => { setLeadOpen(true); leadOpenedAt.current = Date.now(); setStateFor("idle"); }}>
                   Have a project in mind? <span>Send an inquiry ↗</span>
                 </button>
               </>
@@ -411,6 +420,8 @@ export function ChatMascot() {
                   </div>
                 ) : (
                   <form className="lead-form" onSubmit={reviewLead}>
+                    {/* Honeypot: hidden from humans, bots fill it in */}
+                    <input name="website" type="text" tabIndex={-1} aria-hidden="true" style={{ opacity: 0, position: "absolute", pointerEvents: "none", height: 0, overflow: "hidden" }} />
                     <label>Name<input value={lead.name} onChange={(event) => updateLead("name", event.target.value)} maxLength={100} required /></label>
                     <label>Email<input type="email" value={lead.email} onChange={(event) => updateLead("email", event.target.value)} maxLength={254} required /></label>
                     <label>What are you looking to build?<textarea value={lead.project_summary} onChange={(event) => updateLead("project_summary", event.target.value)} minLength={20} maxLength={2500} rows={4} required /></label>
