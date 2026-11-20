@@ -13,6 +13,6 @@ export const profile = {
   github: "https://github.com/markreeveconsul",
   githubUser: "markreeveconsul",
   linkedin: "[TODO: YOUR LINKEDIN URL]",
-  cvPath: "#",
+  cvPath: "/files/mark-reeve-consul-cv.pdf",
   location: "Cebu, Philippines",
 } as const;
