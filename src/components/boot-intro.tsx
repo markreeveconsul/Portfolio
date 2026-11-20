@@ -222,6 +222,10 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
     });
     abort.abort();
     report("started", "ok", `${Math.round(performance.now() - mountedAt)}ms elapsed`);
+    // The asset meter tracks the four checks, while this final row is the
+    // sequence completion. Fill it only after every check has reached a
+    // terminal state, before the exit wipe starts.
+    meter?.style.setProperty("--boot-progress", "1");
     root.classList.add("is-exiting");
     // The wipe starts 0.85s in; the hero entrance has its own 0.35s delay, so the
     // copy begins rising just as the overlay starts to lift.
