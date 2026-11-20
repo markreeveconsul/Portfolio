@@ -73,7 +73,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <div className="detail-visual glass-card">
         <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
-          <Image src={project.image} alt={project.imageAlt} fill sizes="(max-width: 680px) 100vw, 1200px" priority />
+          <Image src={project.image} alt={project.imageAlt} fill sizes="(max-width: 680px) 100vw, 1200px" priority unoptimized />
         </ViewTransition>
         <span className="status-badge">{project.status}</span>
       </div>
@@ -97,7 +97,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <div className="case-chapters">
           {chapters.map((chapter, index) => <Chapter key={chapter.title} index={index + 1} title={chapter.title}>{chapter.body}</Chapter>)}
           {study.gallery?.length ? <section className="case-gallery" aria-label="Screenshots" data-reveal="stagger">
-            {study.gallery.map((shot) => <figure key={shot.src} className="glass-card"><Image src={shot.src} alt={shot.alt} width={1600} height={1000} sizes="(max-width: 900px) 100vw, 760px" />{shot.caption && <figcaption>{shot.caption}</figcaption>}</figure>)}
+            {study.gallery.map((shot) => <figure key={shot.src} className="glass-card"><Image src={shot.src} alt={shot.alt} width={1600} height={1000} sizes="(max-width: 900px) 100vw, 760px" unoptimized />{shot.caption && <figcaption>{shot.caption}</figcaption>}</figure>)}
           </section> : null}
         </div>
       </div>

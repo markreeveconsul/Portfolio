@@ -100,7 +100,7 @@ export function PortfolioExplorer() {
         {projects.map((project) => <article className={`project-card glass-card${project.featured ? " project-card-featured" : ""}`} key={project.slug} data-panel-item="" data-tilt="" data-spotlight="" data-cursor="view">
           <Link className="project-image" href={`/portfolio/${project.slug}`} aria-label={`View details for ${project.name}`}>
             <ViewTransition name={`project-image-${project.slug}`} share="morph" default="none">
-              <Image src={project.image} alt={project.imageAlt} fill sizes={project.featured ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 40vw"} />
+              <Image src={project.image} alt={project.imageAlt} fill sizes={project.featured ? "(max-width: 900px) 100vw, 60vw" : "(max-width: 900px) 100vw, 40vw"} unoptimized />
             </ViewTransition>
             <span className="status-badge">{project.status}</span>
           </Link>
@@ -116,7 +116,7 @@ export function PortfolioExplorer() {
     </div>
 
     <div id="panel-certificates" role="tabpanel" aria-labelledby="tab-certificates" tabIndex={0} hidden={active !== "certificates"}>
-      {active === "certificates" && (certificates.length > 0 ? <div className="certificate-grid">{certificates.map((certificate, index) => <button className="certificate-card" key={`${certificate.title}-${index}`} type="button" data-panel-item="" data-spotlight="" onClick={(event) => { certificateTriggerRef.current = event.currentTarget; setCertificateIndex(index); }} aria-label={`Open certificate: ${certificate.title}`}><Image src={certificate.image} alt={certificate.imageAlt} width={640} height={420} /><span>{certificate.title} · {certificate.issuer}</span></button>)}</div> : <div className="empty-state glass-card" data-panel-item=""><strong>Certificates will go here.</strong>Certificate details will appear here when they are ready to share.</div>)}
+      {active === "certificates" && (certificates.length > 0 ? <div className="certificate-grid">{certificates.map((certificate, index) => <button className="certificate-card" key={`${certificate.title}-${index}`} type="button" data-panel-item="" data-spotlight="" onClick={(event) => { certificateTriggerRef.current = event.currentTarget; setCertificateIndex(index); }} aria-label={`Open certificate: ${certificate.title}`}><Image src={certificate.image} alt={certificate.imageAlt} width={640} height={420} unoptimized /><span>{certificate.title} · {certificate.issuer}</span></button>)}</div> : <div className="empty-state glass-card" data-panel-item=""><strong>Certificates will go here.</strong>Certificate details will appear here when they are ready to share.</div>)}
     </div>
 
     <div id="panel-tech" role="tabpanel" aria-labelledby="tab-tech" tabIndex={0} hidden={active !== "tech"}>
@@ -127,7 +127,7 @@ export function PortfolioExplorer() {
       <div className="lightbox-dialog glass-card" role="dialog" aria-modal="true" aria-label={`Certificate: ${certificates[certificateIndex].title}`}>
         <button className="lightbox-close" type="button" aria-label="Close certificate viewer" ref={closeRef} onClick={closeLightbox}>×</button>
         {certificates.length > 1 && <><button className="lightbox-nav lightbox-prev" type="button" aria-label="Previous certificate" onClick={() => moveLightbox(-1)}>←</button><button className="lightbox-nav lightbox-next" type="button" aria-label="Next certificate" onClick={() => moveLightbox(1)}>→</button></>}
-        <Image src={certificates[certificateIndex].image} alt={certificates[certificateIndex].imageAlt} width={1200} height={800} />
+        <Image src={certificates[certificateIndex].image} alt={certificates[certificateIndex].imageAlt} width={1200} height={800} unoptimized />
         <div className="lightbox-caption">{certificates[certificateIndex].title} · {certificates[certificateIndex].issuer} · {certificates[certificateIndex].date}</div>
       </div>
     </div>}
