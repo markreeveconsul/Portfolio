@@ -388,7 +388,7 @@ export function ChatMascot() {
                   <button className="chat-send" type="submit" disabled={!draft.trim() || busy} aria-label="Send message">↑</button>
                 </form>
                 <button className="chat-inquiry-link" type="button" onClick={() => { setLeadOpen(true); leadOpenedAt.current = Date.now(); setStateFor("idle"); }}>
-                  Have a project in mind? <span>Send an inquiry ↗</span>
+                  Have a project in mind? <span>Send an inquiry <svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 11 11 5M5 5h6v6" /></svg></span>
                 </button>
               </>
             ) : (

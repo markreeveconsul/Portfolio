@@ -79,7 +79,13 @@ export const projects: PortfolioProject[] = [
         "Keeping screens, rules and storage in separate layers let me redesign the whole look without touching the logic.",
         "Testing the real screens caught problems that code review would have missed.",
       ],
-      gallery: [1, 2, 3, 4, 5].map((n) => ({ src: `/images/forge-screenshots/forge${n}.png`, alt: `FORGE screenshot ${n}` })),
+      gallery: [
+        { src: "/images/forge-screenshots/forge1.png", alt: "FORGE sign-in screen with account access and a desktop storefront preview", caption: "Account sign-in and storefront entry screen." },
+        { src: "/images/forge-screenshots/forge2.png", alt: "FORGE customer storefront with category navigation, product search, and product cards", caption: "Customer storefront with product categories, search, and product listings." },
+        { src: "/images/forge-screenshots/forge3.png", alt: "FORGE AI assistant returning matching PC products with prices and stock details", caption: "FORGE AI searches the catalog and shows matching products with prices and stock details." },
+        { src: "/images/forge-screenshots/forge4.png", alt: "FORGE admin overview with product, low-stock, order, customer, and revenue metrics", caption: "Admin overview for inventory, orders, customers, and revenue." },
+        { src: "/images/forge-screenshots/forge5.png", alt: "FORGE AI Neural Manager command workspace for store operations", caption: "Admin AI workspace prototype; the command assistant is still in progress." },
+      ],
     },
   },
   {
@@ -117,7 +123,11 @@ export const projects: PortfolioProject[] = [
         "How the frontend, database, authentication, storage and hosting fit together in a full stack app.",
         "Building privacy rules into the database itself, and improving the interface through testing and iteration.",
       ],
-      gallery: [1, 2, 3].map((n) => ({ src: `/images/portfolio-studio-screenshots/folio${n}.png`, alt: `Portfolio Studio screenshot ${n}` })),
+      gallery: [
+        { src: "/images/portfolio-studio-screenshots/folio1.png", alt: "Portfolio Studio landing page introducing its private portfolio builder", caption: "Landing page introducing the private portfolio builder." },
+        { src: "/images/portfolio-studio-screenshots/folio2.png", alt: "Portfolio Studio editor for personal details with optional profile photo upload", caption: "Portfolio editor for personal details, optional photo upload, and saving changes." },
+        { src: "/images/portfolio-studio-screenshots/folio3.png", alt: "Portfolio Studio template picker above a preview of the saved portfolio", caption: "Template picker and preview of the saved portfolio." },
+      ],
     },
   },
   {
@@ -153,7 +163,7 @@ export const projects: PortfolioProject[] = [
       gallery: [
         { src: "/images/thesa-screenshots/thesa1.png", alt: "Thesa sign-in page beside an illustrated preview of its source-backed writing workspace", caption: "Sign-in and product introduction." },
         { src: "/images/thesa-screenshots/thesa2.png", alt: "Thesa dashboard for starting a thesis from a research problem and choosing citation style and structure", caption: "New thesis setup with a research problem, citation style, and outline choice." },
-        { src: "/images/thesa-screenshots/thesa3.png", alt: "Thesa chapter editor with research sources and the Otto assistant", caption: "Chapter writing and source assistance." },
+        { src: "/images/thesa-screenshots/thesa3.png", alt: "Thesa chapter editor with research sources and the Otto assistant", caption: "Chapter editor with the Otto source-chat preview open." },
       ],
     },
   },
@@ -188,7 +198,7 @@ export const projects: PortfolioProject[] = [
       gallery: [
         { src: "/images/netpath-screenshots/netpath1.png", alt: "NetPath local networking classroom dashboard with a lesson card and visual lab guide", caption: "The local classroom dashboard and learning path." },
         { src: "/images/netpath-screenshots/netpath2.png", alt: "NetPath network sandbox with connected PCs, switches, routers, and a device configuration inspector", caption: "Editable network topology and device configuration." },
-        { src: "/images/netpath-screenshots/netpath3.png", alt: "NetPath networking practice screen", caption: "Networking practice tools." },
+        { src: "/images/netpath-screenshots/netpath3.png", alt: "NetPath practitioner exam page with sample networking certificates and export options", caption: "Practitioner exam page with sample certificates and PNG or PDF export options." },
       ],
     },
   },

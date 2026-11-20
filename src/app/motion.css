@@ -457,7 +457,7 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
 .case-gallery{display:grid;gap:16px}
 .case-gallery figure{margin:0;overflow:hidden;border-radius:16px}
 .case-gallery img{display:block;width:100%;height:auto}
-.case-gallery figcaption{padding:12px 16px;color:var(--muted);font:10px var(--mono)}
+.case-gallery figcaption{padding:12px 16px;color:var(--body);font:12px/1.55 var(--body-font)}
 .case-next{display:grid;gap:10px;margin:clamp(70px,9vw,120px) 0 0;padding:clamp(34px,5vw,56px) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .case-next-title{display:flex;align-items:center;justify-content:space-between;gap:20px;color:var(--text);font:600 clamp(36px,6vw,84px)/1 var(--display);letter-spacing:-.05em}
 .case-next-title span{color:var(--muted);transition:transform .6s var(--ease-out),color .3s}
