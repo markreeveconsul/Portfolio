@@ -143,6 +143,7 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
   setScrollLock(true);
 
   // ---------- Real tasks, reported in the log ----------
+  const onHome = Boolean(document.querySelector(".hero"));
   const line = (key: string) => root.querySelector<HTMLElement>(`[data-task="${key}"]`);
   const meter = root.querySelector<HTMLElement>(".boot-meter");
   const activeTaskKeys = TASKS
@@ -171,7 +172,6 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
       .catch(() => report(key, "skip", "unavailable"));
   };
 
-  const onHome = Boolean(document.querySelector(".hero"));
   if (!onHome) {
     line("textures")?.remove();
     line("card")?.remove();
