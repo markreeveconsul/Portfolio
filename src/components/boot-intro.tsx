@@ -122,7 +122,7 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
   // Hand the page back only once the overlay has actually slid away, so the
   // wipe is always seen, however busy the page is.
   const onWipeEnd = (event: AnimationEvent) => {
-    if (event.target === root && event.animationName === "boot-wipe") finish();
+    if (event.target === root && ["boot-wipe-exit", "boot-wipe-failsafe"].includes(event.animationName)) finish();
   };
   root.addEventListener("animationend", onWipeEnd);
 
@@ -134,10 +134,28 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
     window.dispatchEvent(new Event(BOOT_REVEAL_EVENT));
   };
 
-  // A skip that happened before this script loaded: CSS is already wiping the overlay away.
+  // A skip that happened before this script loaded: finish the checklist, then
+  // run the same visible exit as the normal path.
   if (html.dataset.bootSkip) {
-    reveal();
-    later(finish, EXIT_FALLBACK_MS);
+    const home = Boolean(document.querySelector(".hero"));
+    root.querySelectorAll<HTMLElement>("[data-task]").forEach((element) => {
+      const key = element.dataset.task;
+      if (!home && (key === "textures" || key === "card")) {
+        element.remove();
+        return;
+      }
+      element.dataset.state = key === "started" ? "ok" : "skip";
+      const tag = element.querySelector("b");
+      if (tag) tag.textContent = key === "started" ? TAGS.ok : TAGS.skip;
+      const time = element.querySelector<HTMLElement>("[data-time]");
+      if (time) time.textContent = "skipped by visitor";
+    });
+    root.querySelector<HTMLElement>(".boot-meter")?.style.setProperty("--boot-progress", "1");
+    later(() => {
+      root.classList.add("is-exiting");
+      later(reveal, 650);
+      later(finish, EXIT_FALLBACK_MS);
+    }, EXIT_CONFIRM_MS);
     return () => { timers.forEach((timer) => window.clearTimeout(timer)); root.removeEventListener("animationend", onWipeEnd); };
   }
 
