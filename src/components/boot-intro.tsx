@@ -11,6 +11,8 @@ import { BOOT_DONE_EVENT, BOOT_REVEAL_EVENT, HERO_CARD_READY_EVENT, setScrollLoc
 const MIN_INTRO_MS = 4200;
 /** Safety cap for a broken or unsupported critical renderer. */
 const MAX_WAIT_MS = 12000;
+/** Keep the finished checklist visible before the overlay starts moving. */
+const EXIT_CONFIRM_MS = 1200;
 /**
  * Fallback only: the overlay is removed when its wipe animation actually ends
  * (animationend). This timer covers browsers that never fire the event.
@@ -226,11 +228,13 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
     // sequence completion. Fill it only after every check has reached a
     // terminal state, before the exit wipe starts.
     meter?.style.setProperty("--boot-progress", "1");
-    root.classList.add("is-exiting");
-    // The wipe starts 0.85s in; the hero entrance has its own 0.35s delay, so the
-    // copy begins rising just as the overlay starts to lift.
-    later(reveal, 500);
-    later(finish, EXIT_FALLBACK_MS);
+    later(() => {
+      root.classList.add("is-exiting");
+      // Reveal the page as the slower overlay wipe begins, so it appears
+      // through the transition instead of popping in ahead of it.
+      later(reveal, 650);
+      later(finish, EXIT_FALLBACK_MS);
+    }, EXIT_CONFIRM_MS);
   };
 
   Promise.allSettled(tasks).then(() => { if (!abort.signal.aborted) later(exit, MIN_INTRO_MS - performance.now()); });
