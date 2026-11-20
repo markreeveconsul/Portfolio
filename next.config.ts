@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: { agentUpgrade: 'security' },
   typedRoutes: true,
   outputFileTracingRoot: process.cwd(),
   turbopack: { root: process.cwd() },
   images: {
-    unoptimized: true,
     domains: [],
   },
   async headers() {

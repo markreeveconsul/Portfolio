@@ -8,6 +8,7 @@ import { profile } from "@/data/profile";
 import { formatDate, getRepoStats, languageColor } from "@/lib/github";
 import { Navbar } from "@/components/navbar";
 import { ScrollReveals } from "@/components/scroll-reveals";
+import { siteUrl } from "@/lib/site-url";
 
 export function generateStaticParams() {
   return projects.map(({ slug }) => ({ slug }));
@@ -17,7 +18,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const project = getProject(slug);
   if (!project) return { title: "Project not found" };
-  return { title: `${project.name} — ${profile.name}`, description: project.summary };
+  return {
+    title: `${project.name} — ${profile.name}`,
+    description: project.summary,
+    alternates: { canonical: `/portfolio/${project.slug}` },
+    openGraph: {
+      title: `${project.name} — ${profile.name}`,
+      description: project.summary,
+      url: new URL(`/portfolio/${project.slug}`, siteUrl).href,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: `${project.name} — ${profile.name}` }],
+    },
+  };
 }
 
 function Chapter({ index, title, children }: { index: number; title: string; children: React.ReactNode }) {
