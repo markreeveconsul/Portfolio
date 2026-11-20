@@ -243,16 +243,16 @@ html.lenis{scroll-behavior:auto}
    while JavaScript loads. Timeline (seconds after page load):
    0.0 grid · 0.1 log · 0.2 meter · 1.25 logo outline draws · 1.85 M R K rise
    1.95 logo fills · 2.05 glow + shockwave · 2.25 "REEVE CONSUL" · 2.6 light
-   sweep · 4.2 breathing while real work finishes · exit wipe (JS, or 10s failsafe).
+   sweep · 4.2 breathing while real work finishes · exit wipe (JS, or 20s failsafe).
    ===================================================================== */
 @property --boot-progress{syntax:"<number>";inherits:true;initial-value:0}
 @property --boot-pct{syntax:"<integer>";inherits:true;initial-value:0}
-.boot{position:fixed;inset:0;z-index:300;display:none;place-items:center;overflow:hidden;background:radial-gradient(ellipse 60% 50% at 50% 45%,#11131a,#07080b 75%);color:var(--ink);will-change:transform;animation:boot-wipe .95s var(--ease-in-out) 14s forwards}
+.boot{position:fixed;inset:0;z-index:300;display:none;place-items:center;overflow:hidden;background:radial-gradient(ellipse 60% 50% at 50% 45%,#11131a,#07080b 75%);color:var(--ink);will-change:transform;animation:boot-wipe .95s var(--ease-in-out) 20s forwards}
 html[data-boot="play"] .boot{display:grid}
 @media (scripting: none){.boot{display:none!important}}
 /* The progress value animates on the meter only (its sole consumer), so each frame
    restyles a handful of elements instead of the whole overlay. */
-.boot.is-exiting ,html[data-boot-skip] .boot {animation:boot-wipe .95s var(--ease-in-out) .85s forwards}
+.boot.is-exiting ,html[data-boot-skip] .boot {animation:boot-wipe 1.8s var(--ease-in-out) .65s forwards}
 html[data-boot-skip] .boot{animation:boot-wipe .7s var(--ease-in-out) forwards}
 /* The wipe slides the whole overlay up with a transform, which the browser runs on the
    compositor thread: it stays smooth even while the main page is loading underneath. */
