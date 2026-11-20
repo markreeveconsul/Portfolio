@@ -73,12 +73,12 @@ export function BootIntro() {
       <span className="boot-sub">Reeve Consul</span>
     </div>
     <div className="boot-log">
-      <p data-state="ok"><b className="is-colon">::</b> Synchronizing package databases… <span className="boot-dim">consul.dev</span></p>
+      <p data-state="ok"><b className="is-colon">::</b> Preparing portfolio…</p>
       {TASKS.map((task) => <p key={task.key} data-task={task.key} data-state="pending"><b>{TAGS.pending}</b> {task.label} <span className="boot-dim" data-time="" /></p>)}
-      <p data-task="started" data-state="pending"><b>{TAGS.pending}</b> Started consul.dev <span className="boot-dim" data-time="" /></p>
+      <p data-task="started" data-state="pending"><b>{TAGS.pending}</b> Intro complete <span className="boot-dim" data-time="" /></p>
     </div>
     <div className="boot-meter">
-      <span className="boot-cmd">pacman -Syu</span>
+      <span className="boot-cmd">ASSET CHECKS</span>
       <span className="boot-pac"><span className="boot-pac-trail" /><span className="boot-pac-dots" /><span className="boot-pac-man" /></span>
       <span className="boot-percent" />
       <span className="boot-hint">Click to skip</span>
@@ -144,6 +144,12 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
 
   // ---------- Real tasks, reported in the log ----------
   const line = (key: string) => root.querySelector<HTMLElement>(`[data-task="${key}"]`);
+  const meter = root.querySelector<HTMLElement>(".boot-meter");
+  const activeTaskKeys = TASKS
+    .filter(({ key }) => onHome || (key !== "textures" && key !== "card"))
+    .map(({ key }) => key);
+  const completedTasks = new Set<TaskKey>();
+  meter?.style.setProperty("--boot-progress", "0");
   const report = (key: string, result: TaskResult, note?: string) => {
     const element = line(key);
     if (!element || element.dataset.state !== "pending") return;
@@ -152,8 +158,18 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
     if (tag) tag.textContent = TAGS[result];
     const time = element.querySelector<HTMLElement>("[data-time]");
     if (time) time.textContent = note ?? `${Math.round(performance.now())}ms`;
+    if (key !== "started") {
+      if (result === "wait") completedTasks.delete(key as TaskKey);
+      else completedTasks.add(key as TaskKey);
+      meter?.style.setProperty("--boot-progress", String(completedTasks.size / activeTaskKeys.length));
+    }
   };
-  const timed = (key: TaskKey, work: Promise<unknown>) => work.then(() => report(key, "ok")).catch(() => report(key, "skip", "unavailable"));
+  const timed = (key: TaskKey, work: Promise<unknown>) => {
+    const startedAt = performance.now();
+    return work
+      .then(() => report(key, "ok", `${Math.round(performance.now() - startedAt)}ms`))
+      .catch(() => report(key, "skip", "unavailable"));
+  };
 
   const onHome = Boolean(document.querySelector(".hero"));
   if (!onHome) {
@@ -182,7 +198,7 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
       if (html.dataset.heroCardReady === "1") { report("card", "ok"); resolve(); return; }
       const timeout = window.setTimeout(() => {
         window.removeEventListener(HERO_CARD_READY_EVENT, ready);
-        report("card", "wait", "using safe fallback");
+        report("card", "skip", "safe fallback");
         resolve();
       }, Math.max(0, MAX_WAIT_MS - performance.now()));
       const ready = () => {
@@ -196,17 +212,16 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
   }
 
   // ---------- Exit ----------
-  const exit = () => {
+  const exit = (skipped = false) => {
     if (exiting || finished) return;
     exiting = true;
-    TASKS.forEach(({ key }) => report(key, "wait", "continuing in background"));
+    activeTaskKeys.forEach((key) => {
+      if (line(key)?.dataset.state === "pending") {
+        report(key, "skip", skipped ? "skipped by visitor" : "timed out; using fallback");
+      }
+    });
     abort.abort();
-    report("started", "ok");
-    // Freeze the progress value (on the meter, which owns it) as the underlying
-    // value, so the exit animation runs from here to 100% instead of from 0.
-    const meter = root.querySelector<HTMLElement>(".boot-meter");
-    const current = meter ? getComputedStyle(meter).getPropertyValue("--boot-progress").trim() : "";
-    if (meter && current) meter.style.setProperty("--boot-progress", current);
+    report("started", "ok", `${Math.round(performance.now() - mountedAt)}ms elapsed`);
     root.classList.add("is-exiting");
     // The wipe starts 0.85s in; the hero entrance has its own 0.35s delay, so the
     // copy begins rising just as the overlay starts to lift.
@@ -219,7 +234,7 @@ function runBoot(root: HTMLDivElement, html: HTMLElement): () => void {
   later(finish, MAX_WAIT_MS - performance.now() + EXIT_FALLBACK_MS + 1500); // watchdog
 
   // Skip on a click or tap only, so scrolling, mouse movement or a drag never ends the intro.
-  const skip = () => exit();
+  const skip = () => exit(true);
   const events = ["click"] as const;
   events.forEach((type) => window.addEventListener(type, skip, { passive: true }));
 

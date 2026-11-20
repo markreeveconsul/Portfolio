@@ -254,8 +254,6 @@ html[data-boot="play"] .boot{display:grid}
    restyles a handful of elements instead of the whole overlay. */
 .boot.is-exiting ,html[data-boot-skip] .boot {animation:boot-wipe .95s var(--ease-in-out) .85s forwards}
 html[data-boot-skip] .boot{animation:boot-wipe .7s var(--ease-in-out) forwards}
-@keyframes boot-progress{from{--boot-progress:0}to{--boot-progress:.9}}
-@keyframes boot-progress-done{to{--boot-progress:1}}
 /* The wipe slides the whole overlay up with a transform, which the browser runs on the
    compositor thread: it stays smooth even while the main page is loading underneath. */
 @keyframes boot-wipe{from{transform:translateY(0)}to{transform:translateY(-100%)}}
@@ -301,7 +299,7 @@ html[data-boot-skip] .boot{animation:boot-wipe .7s var(--ease-in-out) forwards}
 @keyframes boot-pending{to{opacity:.25}}
 
 /* Meter: pacman eats its way across (ILoveCandy, from pacman.conf). */
-.boot-meter{position:absolute;left:clamp(20px,4vw,48px);right:clamp(20px,4vw,48px);bottom:clamp(28px,5vh,48px);display:flex;align-items:center;gap:16px;color:var(--muted);font:500 10px var(--font-card-mono,var(--mono));letter-spacing:.08em;--boot-pct:calc(var(--boot-progress) * 100);animation:boot-rise .5s ease-out .2s both,boot-progress 4.2s cubic-bezier(.45,0,.55,1) both}
+.boot-meter{position:absolute;left:clamp(20px,4vw,48px);right:clamp(20px,4vw,48px);bottom:clamp(28px,5vh,48px);display:flex;align-items:center;gap:16px;color:var(--muted);font:500 10px var(--font-card-mono,var(--mono));letter-spacing:.08em;--boot-progress:0;--boot-pct:calc(var(--boot-progress) * 100);transition:--boot-progress .45s ease-out;animation:boot-rise .5s ease-out .2s both}
 @keyframes boot-rise{from{opacity:0;transform:translateY(8px)}}
 .boot-cmd{color:var(--ice);white-space:nowrap}
 .boot-percent{min-width:4ch;color:var(--ink);text-align:right;white-space:pre;counter-reset:boot-pct var(--boot-pct)}
@@ -328,7 +326,7 @@ html[data-boot-skip] .boot .boot-edge{transition-delay:0s}
 .boot.is-exiting .boot-word .arch-glyph::after,html[data-boot-skip] .boot .boot-word .arch-glyph::after,.boot.is-exiting .boot-shock,html[data-boot-skip] .boot .boot-shock{animation:none;opacity:0}
 .boot.is-exiting .boot-word .arch-glyph svg,html[data-boot-skip] .boot .boot-word .arch-glyph svg{animation:boot-glyph-out .6s cubic-bezier(.7,0,.84,0) .59s both}
 @keyframes boot-glyph-out{to{transform:translateY(-120%);opacity:0}}
-.boot.is-exiting .boot-meter,html[data-boot-skip] .boot .boot-meter{animation:boot-progress-done .45s ease-out forwards,boot-fade-out .35s ease-out .6s both}
+.boot.is-exiting .boot-meter,html[data-boot-skip] .boot .boot-meter{animation:boot-fade-out .35s ease-out .6s both}
 .boot.is-exiting .boot-sub,html[data-boot-skip] .boot .boot-sub,.boot.is-exiting .boot-log,html[data-boot-skip] .boot .boot-log,.boot.is-exiting .boot-grid,html[data-boot-skip] .boot .boot-grid,.boot.is-exiting .boot-canvas,html[data-boot-skip] .boot .boot-canvas{animation:boot-fade-out .35s ease-out .6s both}
 @keyframes boot-fade-out{to{opacity:0}}
 
