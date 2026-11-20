@@ -31,7 +31,11 @@ export function ScrollReveals() {
     const setup = contextSafe!(() => {
       if (reverted) return;
       cleanups.push(setupProcess());
-      if (window.matchMedia(motionQueries.motionOk).matches) cleanups.push(setupReveals());
+      // ScrollTrigger-driven `from()` reveals can leave their targets at
+      // autoAlpha: 0 when touch browsers miss a refresh/visibility transition.
+      // Keep content and images immediately visible on touch-sized devices;
+      // retain the scroll choreography where pointer/scroll synchronization is reliable.
+      if (window.matchMedia(motionQueries.desktop).matches) cleanups.push(setupReveals());
     });
 
     const hasIdle = typeof window.requestIdleCallback === "function";
